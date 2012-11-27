@@ -9,7 +9,7 @@ actually calculate the unique prefixes.
 - requires more command line options and correlate -h output
 
 * TODO add tests for normal distributions
-* TODO R cleanup
+* DONE R cleanup
 When adding more T tests, also switch to using R for transposes rather
 than including the awk transpose function.
 

@@ -200,27 +200,21 @@ act(){
                    END { if(NR == 0) print "NA"; else print sum/NR; }';;
     esac; }
 
-transpose(){
-    awk '{ for (f=1; f<=NF; f++) a[NR, f] = $f }
-         NF > nf { nf = NF }
-         END { for (f=1; f<= nf; f++)
-                 for (r=1; r<=NR; r++)
-                     printf a[r,f] (r==NR ? RS : FS); }'; }
 r_script=""
-r_script+='d <- read.table("stdin", header=FALSE, fill=TRUE); '
-r_script+='x <- as.vector(d[1]); col1 <- x[!is.na(x)]; '
-r_script+='y <- as.vector(d[2]); col2 <- y[!is.na(y)]; '
+r_script+='d <- t(read.table("stdin", header=FALSE, fill=TRUE));'
+r_script+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
+r_script+='y <- as.vector(d[,2]); col2 <- y[!is.na(y)]; '
 t_script="$r_script"
 t_script+='t.test(col1,col2)'
 ks_script="$r_script"
 ks_script+='ks.test(col1,col2)'
 t_test(){
-    transpose|Rscript -e "$t_script" 2>/dev/null \
+    Rscript -e "$t_script" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
         |awk '{printf "%s(%s)", $2, $6}'; }
 ks_test(){
-    transpose|Rscript -e "$ks_script" 2>/dev/null \
+    Rscript -e "$ks_script" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
         |awk '{printf "%s(%s)", $2, $4}'; }
