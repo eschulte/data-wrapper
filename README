@@ -1,0 +1,52 @@
+Wrap text data in a shell script allowing easy analysis
+
+- Well suited to tabular or relational data with multiple categories.
+- A nice way to share data (similar to Reproducible Research).
+- Easier than continually re-learning how to do simple analysis tasks.
+
+Usage:
+1. Run the data-wrapper on your file of raw data passing in names for
+   each column of the data.  Run "data-wrapper -h" to see detailed
+   help.
+
+     data-wrapper DATAFILE [COLUMNS]
+
+2. This will result in the creation of an executable file named
+   DATAFILE-viewer.  This file holds all of your data wrapped in a
+   bash script which provides numerous views into the data.  For more
+   information pass "-h" to this resulting script.
+
+   Here's example help output.
+
+     $ neut-viewer -h
+     Usage: neut-viewer [options...] [action]
+     
+     Options:
+      -h --help ------------- print this help message
+      -i --include CAT=STR -- only include items with CAT=STR in results
+      -e --exclude CAT=STR -- exclude items with CAT=STR from results
+      -b --by [CAT,...] ----- group results by CATs (comma separated)
+      -g --graph ------------ graph mean of results (requires feedgnuplot)
+      -o --output FILE ------ save output to FILE
+     
+     Actions (specify at most one to reduce results):
+      -m --mean ------------- mean of all matching results
+      -s --sum -------------- mean of all matching results
+      -t --test ------------- t test between all groups of results
+                              (use at most one category, requires Rscript)
+     
+     Categories (CAT):
+      One of algorithm, language, compiler, flag.  Substrings may be
+      used, e.g., "a" for "algorithm".
+     
+     Examples:
+       
+       to print a table of the mean value by algo and lang, use:
+     
+         neut-viewer -b algo,lang -m
+       
+       to calculate the total value by algo, and graph the results to an
+       svg file, use:
+     
+         neut-viewer -b algo -m -g -o /tmp/by-lang.svg
+
