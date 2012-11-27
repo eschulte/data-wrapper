@@ -16,11 +16,11 @@ Usage:
    bash script which provides numerous views into the data.  For more
    information pass "-h" to this resulting script.
 
-   Here's example help output.
+   Here's example help output from a data file I'm using currently.
 
-     $ neut-viewer -h
+     $ neut-viewer -h   
      Usage: neut-viewer [options...] [action]
-     
+
      Options:
       -h --help ------------- print this help message
       -i --include CAT=STR -- only include items with CAT=STR in results
@@ -28,25 +28,26 @@ Usage:
       -b --by [CAT,...] ----- group results by CATs (comma separated)
       -g --graph ------------ graph mean of results (requires feedgnuplot)
       -o --output FILE ------ save output to FILE
-     
+
      Actions (specify at most one to reduce results):
       -m --mean ------------- mean of all matching results
       -s --sum -------------- mean of all matching results
-      -t --test ------------- t test between all groups of results
+      -t --t-test ----------- t test between all groups of results
                               (use at most one category, requires Rscript)
-     
+      -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
+                              results (at most one category, Rscript)
+
      Categories (CAT):
       One of algorithm, language, compiler, flag.  Substrings may be
       used, e.g., "a" for "algorithm".
-     
+
      Examples:
-       
+
        to print a table of the mean value by algo and lang, use:
-     
+
          neut-viewer -b algo,lang -m
-       
+
        to calculate the total value by algo, and graph the results to an
        svg file, use:
-     
-         neut-viewer -b algo -m -g -o /tmp/by-lang.svg
 
+         neut-viewer -b algo -m -g -o /tmp/by-lang.svg
