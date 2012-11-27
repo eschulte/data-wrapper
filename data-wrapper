@@ -31,7 +31,9 @@ HELP_TEXT=$(cat "$0" \
     |tail -n +3 \
     |sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' \
     |cut -c3-)
-if $(echo "$1"|grep "" >/dev/null 2>/dev/null);then echo "$HELP_TEXT"; exit 1;fi
+if $(echo "$1"|grep "^\-\?\-h\(elp\|$\)" >/dev/null 2>/dev/null);then
+    echo "$HELP_TEXT"; exit 1;
+fi
 SCRIPT="$(cat "$0"|sed -n '/^SCRIPT:/,$p'|tail --lines=+2)"
 DATAFILE="$1"; shift;
 SCRIPTFILE="$DATAFILE-viewer"
