@@ -22,8 +22,6 @@
 #
 #     data-viewer neut algorithm language compiler flag result
 #
-#  TODO: Instead of assuming the first letter of every column in
-#        unique, actually calculate the unique prefixes.
 #
 HELP_TEXT=$(cat "$0" \
     |sed '/^[^#]/q' \
