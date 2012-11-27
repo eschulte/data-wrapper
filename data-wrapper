@@ -23,6 +23,9 @@
 #     data-viewer neut algorithm language compiler flag result
 #
 #
+# NOTE: for now, all column names must have unique first letters
+#
+#
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 HELP_TEXT=$(cat "$0" \
     |sed '/^[^#]/q' \
