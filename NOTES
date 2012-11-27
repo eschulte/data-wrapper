@@ -13,4 +13,4 @@ actually calculate the unique prefixes.
 When adding more T tests, also switch to using R for transposes rather
 than including the awk transpose function.
 
-* TODO add support for Kolomogorov-Smirnov tests
+* DONE add support for Kolomogorov-Smirnov tests

@@ -23,15 +23,14 @@
 #     data-viewer neut algorithm language compiler flag result
 #
 #
+contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 HELP_TEXT=$(cat "$0" \
     |sed '/^[^#]/q' \
     |head -n -1 \
     |tail -n +3 \
     |sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' \
     |cut -c3-)
-if $(echo "$1"|grep "^\-\?\-h\(elp\|$\)" >/dev/null 2>/dev/null);then
-    echo "$HELP_TEXT"; exit 1;
-fi
+if $(contains "$1" "^\-\?\-h\(elp\|$\)");then echo "$HELP_TEXT"; exit 1;fi
 SCRIPT="$(cat "$0"|sed -n '/^SCRIPT:/,$p'|tail --lines=+2)"
 DATAFILE="$1"; shift;
 SCRIPTFILE="$DATAFILE-viewer"
@@ -85,8 +84,10 @@ SCRIPT:
 # Actions (specify at most one to reduce results):
 #  -m --mean ------------- mean of all matching results
 #  -s --sum -------------- mean of all matching results
-#  -t --test ------------- t test between all groups of results
+#  -t --t-test ----------- t test between all groups of results
 #                          (use at most one category, requires Rscript)
+#  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
+#                          results (at most one category, Rscript)
 #
 # Categories (CAT):
 #  One of COLUMNS.  Substrings may be
@@ -104,6 +105,7 @@ SCRIPT:
 #     SCRIPT -b COL1 -m -g -o /tmp/by-lang.svg
 #     
 #
+contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 error(){ echo "$0: $@" >&2; exit 1; }
 TITLE="$0 $@"
 ACT="all"
@@ -147,8 +149,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:mstgo: \
-    -l help,include:,exclude:,by:,mean,sum,test,graph,output: \
+    -o hi:e:b:mstkgo: \
+    -l help,include:,exclude:,by:,mean,sum,t-test,ks-test,graph,output: \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -167,7 +169,8 @@ while [ $# -gt 0 ];do
             IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
         -s|--sum)       add_act "sum";;
-        -t|--test)      add_act "test";;
+        -t|--t-test)    add_act "t_test";;
+        -k|--ks-test)   add_act "ks_test";;
         -g|--graph)     GRAPH="yes";;
         -o|--output)    OUT="$2"; shift;;
         (--) shift; break;;
@@ -203,22 +206,34 @@ transpose(){
          END { for (f=1; f<= nf; f++)
                  for (r=1; r<=NR; r++)
                      printf a[r,f] (r==NR ? RS : FS); }'; }
-t_script=""
-t_script+='d <- read.table("stdin", header=FALSE, fill=TRUE); '
-t_script+='x <- as.vector(d[1]); col1 <- x[!is.na(x)]; '
-t_script+='y <- as.vector(d[2]); col2 <- y[!is.na(y)]; '
+r_script=""
+r_script+='d <- read.table("stdin", header=FALSE, fill=TRUE); '
+r_script+='x <- as.vector(d[1]); col1 <- x[!is.na(x)]; '
+r_script+='y <- as.vector(d[2]); col2 <- y[!is.na(y)]; '
+t_script="$r_script"
 t_script+='t.test(col1,col2)'
+ks_script="$r_script"
+ks_script+='ks.test(col1,col2)'
 t_test(){
-    transpose|Rscript -e "$t_script" \
+    transpose|Rscript -e "$t_script" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
         |awk '{printf "%s(%s)", $2, $6}'; }
-
+ks_test(){
+    transpose|Rscript -e "$ks_script" 2>/dev/null \
+        |sed 's/,//g;s/=//g' \
+        |grep p-value \
+        |awk '{printf "%s(%s)", $2, $4}'; }
+r_test(){
+    case "$1" in
+        t_test)   t_test;;
+        ks_test) ks_test;;
+    esac; }
 post_process(){
     if [ ! -z "$GRAPH" ];then
         if [ $(which feedgnuplot >/dev/null 2>/dev/null) ];then
             error "Graphing requires the feedgnuplot executable."
-        elif ([ "$ACT" == "all" ] || [ "$ACT" == "test" ]);then
+        elif ([ "$ACT" == "all" ] || $(contains "$ACT" "test"));then
             error "Can't graph $ACT results, must use mean or sum."
         elif [ ${#CAT[@]} -ne 1 ];then
             error "Can only graph a single category at a time."
@@ -256,7 +271,7 @@ case ${#CAT[@]} in
     0) echo "$DATA";;
     1)
         CATS="$(echo "$DATA"|awk "{print \$${CAT[0]}}"|sort -u)"
-        if [ "$ACT" == "test" ];then
+        if $(contains "$ACT" "test");then
             echo "[$(echo "$CATS"|wc -l)x$(echo "$CATS"|wc -l)] $(echo $CATS)"
             for x in $CATS;do
                 XS="$(echo "$DATA"|inc ${CAT[0]} $x|res)"
@@ -264,7 +279,7 @@ case ${#CAT[@]} in
                 for y in $CATS;do
                     YS="$(echo "$DATA"|inc ${CAT[0]} $y|res)"
                     sets="$(echo "$(echo "$XS"|tr '\n' ' ')";echo "$(echo "$YS"|tr '\n' ' ')")"
-                    echo -n " $(echo "$sets"|t_test)"
+                    echo -n " $(echo "$sets"|r_test $ACT)"
                 done
                 echo ""
             done
@@ -274,7 +289,7 @@ case ${#CAT[@]} in
             done
         fi;;
     2)
-        if [ "$ACT" == "test" ];then
+        if $(contains "$ACT" "test");then
             error "Can group by at most one column when running a T test."
         fi
         XS="$(echo "$DATA"|awk "{print \$${CAT[0]}}"|sort -u)"
