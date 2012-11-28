@@ -1,4 +1,4 @@
-Wrap text data in a shell script allowing easy analysis
+Wrap text data in a portable shell script allowing easy (re)-analysis
 
 - Well suited to tabular or relational data with multiple categories.
 - A nice way to share data (similar to Reproducible Research).
