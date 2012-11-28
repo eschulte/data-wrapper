@@ -205,6 +205,7 @@ RES_AWK+="; }"
 
 res(){ awk "$RES_AWK"; }
 
+# Simple stats with awk
 act(){
     case $ACT in
         all)  awk '{ for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
@@ -225,6 +226,7 @@ act(){
                        if(i<NF) printf " ";}}';;
     esac|sed 's/ /\//g'; }
 
+# More complex stats with R
 r_script=""
 r_script+='d <- t(read.table("stdin", header=FALSE, fill=TRUE));'
 r_script+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
@@ -248,6 +250,8 @@ r_test(){
         t_test)   t_test;;
         ks_test) ks_test;;
     esac; }
+
+# Tabled data or graphs with gnuplot
 post_process(){
     if [ ! -z "$GRAPH" ];then
         if [ $(which feedgnuplot >/dev/null 2>/dev/null) ];then
@@ -300,7 +304,8 @@ case ${#CAT[@]} in
                 echo -n "$x"
                 for y in $CATS;do
                     YS="$(echo "$DATA"|inc ${CAT[0]} $y|res)"
-                    sets="$(echo "$(echo "$XS"|tr '\n' ' ')";echo "$(echo "$YS"|tr '\n' ' ')")"
+                    sets="$(echo "$(echo "$XS"|tr '\n' ' ')";
+                            echo "$(echo "$YS"|tr '\n' ' ')")"
                     echo -n " $(echo "$sets"|r_test $ACT)"
                 done
                 echo ""
