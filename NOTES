@@ -1,11 +1,11 @@
 Notes and Tasks                                           -*- org -*-
 
-* Tasks [6/9]
+* Tasks [7/9]
 ** TODO switch from feedgnuplot to gnuplot
 1. removes the least widely installed dependency
 2. provides for more flexibility in producing graphical results
 
-** TODO unify the =act= and =r_test= action methods
+** DONE unify the =act= and =r_test= action methods
 There should be only one way to apply actions, and it should act on
 only one style of data; that output by the =res= method, possibly with
 temporary ACT values.

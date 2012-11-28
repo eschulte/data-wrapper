@@ -226,39 +226,29 @@ transpose(){
                      printf a[r,f] (r==NR ? RS : FS); }'; }
 
 # Complex stats with R
-r_script=""
-r_script+='d <- read.table("stdin", header=FALSE, fill=TRUE);'
-r_script+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
-r_script+='y <- as.vector(d[,2]); col2 <- y[!is.na(y)]; '
-t_script="$r_script"
-t_script+='t.test(col1,col2)'
-ks_script="$r_script"
-ks_script+='ks.test(col1,col2)'
-cor_script="$r_script"
-cor_script+='cor.test(col1,col2)'
+r_prefix='d <- read.table("stdin", header=FALSE, fill=TRUE);'
+r_prefix+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
+r_prefix+='if(length(d) > 1){ y <- as.vector(d[,2]); col2 <- y[!is.na(y)]; }; '
 t_test(){
-    Rscript -e "$t_script" 2>/dev/null \
+    Rscript -e "$r_prefix t.test(col1,col2)" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
         |awk '{printf "%s(%s)", $2, $6}'; }
 ks_test(){
-    Rscript -e "$ks_script" 2>/dev/null \
+    Rscript -e "$r_prefix ks.test(col1,col2)" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
         |awk '{printf "%s(%s)", $2, $4}'; }
 cor_test(){
-    Rscript -e "$cor_script" 2>/dev/null \
+    Rscript -e "$r_prefix cor.test(col1,col2)" 2>/dev/null \
         |tr '\n' ' ' \
         |sed 's/^.*p-value = //;s/ alternative.* cor / /;s/ *$//' \
         |awk '{printf "%s(%s)", $2, $1}'; }
-norm_script='d <- read.table("stdin", header=FALSE, fill=TRUE); '
-norm_script+='shapiro.test(as.vector(d[,1]))'
 norm_test(){
-    Rscript -e "$norm_script" 2>/dev/null \
+    Rscript -e "$r_prefix shapiro.test(col1)" \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
-        |awk '{printf "%s(%s)", $2, $4}';
-    exit 1; }
+        |awk '{printf "%s(%s)", $2, $4}'; }
 
 # Run all actions using awk or R
 act(){
