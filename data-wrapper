@@ -6,8 +6,8 @@
 #  different views of the data.
 #
 #  All remaining arguments (i.e., COLUMNS) should be the names of the
-#  columns of data in DATAFILE in order.  Name the column holding the
-#  data "result".  So for example, with data like the following,
+#  columns of data in DATAFILE in order.  So for example, with data
+#  like the following,
 #
 #     bubble cpp g++ O0 395
 #     bubble cpp g++ O2 412
@@ -37,28 +37,25 @@ if $(contains "$1" "^\-\?\-h\(elp\|$\)");then echo "$HELP_TEXT"; exit 1;fi
 SCRIPT="$(cat "$0"|sed -n '/^SCRIPT:/,$p'|tail --lines=+2)"
 DATAFILE="$1"; shift;
 SCRIPTFILE="$DATAFILE-viewer"
-declare -a COLUMNS
-COUNTER=1
+COUNTER=0
 CASE=""
 COL_TEXT=""
 for col in $@;do
-    COLUMNS[$COUNTER]=$col
-    if [ "$col" == "result" ];then
-        RES=$COUNTER;
-    else
-        CASE+="$(echo $col|cut -c-1)*) echo $COUNTER;; "
-        COL_TEXT+="$col, "
-    fi
     COUNTER=$(expr $COUNTER + 1)
+    COLUMNS[$COUNTER]=$col
+    CASE+="$(echo $col|cut -c-1)*) echo $COUNTER;; "
+    COL_TEXT+="$col, "
+    # default result column
+    COL0=$col
 done
 COL1=$(echo ${COLUMNS[1]}|cut -c1-4)
 COL2=$(echo ${COLUMNS[2]}|cut -c1-4)
 
 SED="s/SCRIPT/$(basename $SCRIPTFILE)/g;"
 SED+="s/COLUMNS/${COL_TEXT%??}/g;"
+SED+="s/COL0/$COL0/g;"
 SED+="s/COL1/$COL1/g;"
 SED+="s/COL2/$COL2/g;"
-SED+="s/RES/$RES/g;"
 SED+="s/CASE/$CASE/g;"
 
 # echo "$SED"
@@ -78,9 +75,11 @@ SCRIPT:
 #
 # Options:
 #  -h --help ------------- print this help message
-#  -i --include CAT=STR -- only include items with CAT=STR in results
-#  -e --exclude CAT=STR -- exclude items with CAT=STR from results
-#  -b --by [CAT,...] ----- group results by CATs (comma separated)
+#  -i --include COL=STR -- only include items with COL=STR in results
+#  -e --exclude COL=STR -- exclude items with COL=STR from results
+#  -b --by [COL,...] ----- group results by COLs (comma separated)
+#  -r --res [COL,...] ---- print results for COLs
+#                          (comma separated, defaults to COL0)
 #  -g --graph ------------ graph mean of results (requires feedgnuplot)
 #  -o --output FILE ------ save output to FILE
 #
@@ -92,7 +91,7 @@ SCRIPT:
 #  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
 #                          results (at most one category, Rscript)
 #
-# Categories (CAT):
+# Columns (COL):
 #  One of COLUMNS.  Substrings may be
 #  used, e.g., "a" for "algorithm".
 #
@@ -117,6 +116,7 @@ GRAPH=""
 declare -a INC
 declare -a EXC
 declare -a CAT
+declare -a RES
 row(){ # match categories to rows in the data
     case $1 in
         CASE
@@ -127,6 +127,7 @@ add_cat(){
     local length=${#CAT[@]};
     if [ $length -gt 1 ];then error "Can specify at most two categories.";
                          else CAT[$length]=$cat; fi; }
+add_res(){ RES+=("$1"); }
 add_act(){
     local act="$1";
     if [ ! "$ACT" == "all" ];then error "Can specify at most one action.";
@@ -142,6 +143,8 @@ add_inc_exp(){
         *) error "Impossible type $type.";;
     esac; }
 
+RES+=$(row "COL0")
+
 DATA="$(cat "$0"|sed -n '/^DATA:/,$p'|tail --lines=+2)"
 
 HELP_TEXT=$(cat "$0" \
@@ -152,8 +155,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:mstkgo: \
-    -l help,include:,exclude:,by:,mean,sum,t-test,ks-test,graph,output: \
+    -o hi:e:b:r:mstkgo: \
+    -l help,include:,exclude:,by:,res:,mean,sum,t-test,ks-test,graph,output: \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -162,14 +165,19 @@ while [ $# -gt 0 ];do
         -i|--include)   add_inc_exp "INC" "$2"; shift;;
         -e|--exclude)   add_inc_exp "EXC" "$2"; shift;;
         -b|--by)
-            SAVE="$IFS"
-            IFS=","
+            SAVE="$IFS"; IFS=","
             for i in $2;do
                 row $i >/dev/null || exit 1
                 add_cat $(row $i)
             done
-            shift;
-            IFS="$SAVE";;
+            shift; IFS="$SAVE";;
+        -r|--res)
+            SAVE="$IFS"; IFS=","
+            for i in $2;do
+                row $i >/dev/null || exit 1
+                RES=$(row $i)
+            done
+            shift; IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
         -s|--sum)       add_act "sum";;
         -t|--t-test)    add_act "t_test";;
@@ -192,7 +200,10 @@ exc(){
     local cat=$1; local match=$2;
     awk "{ if (\$$cat != \"$match\") print \$0; }"; }
 
-res(){ awk '{ print $RES; }'; }
+RES_AWK="{ print "
+for col in $RES;do RES_AWK+="\$$col ";done
+RES_AWK+="; }"
+res(){ awk "$RES_AWK"; }
 
 act(){
     case $ACT in
