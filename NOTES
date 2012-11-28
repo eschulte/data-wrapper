@@ -1,13 +1,14 @@
 Notes and Tasks                                           -*- org -*-
 
-* Tasks [2/5]
+* Tasks [3/5]
 ** TODO don't assume unique column names
 Instead of assuming the first letter of every column is unique,
 actually calculate the unique prefixes.
 
-** TODO handle multiple named results as well as named columns
-- The first result should be the default.
+** DONE handle multiple named results as well as named columns
+- The last result should be the default.
 - requires more command line options and correlate -h output
+- no differentiating between independent/dependent variable columns
 
 ** TODO add tests for normal distributions
 ** DONE R cleanup
