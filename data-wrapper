@@ -42,8 +42,15 @@ CASE=""
 COL_TEXT=""
 for col in $@;do
     COUNTER=$(expr $COUNTER + 1)
+    PRE=""
+    for i in $(seq 1 $(expr $(echo "$col"|wc -c) - 1));do
+        PRE="$(echo "$col"|cut -c-$i)"
+        if ! $(contains "$(echo "${COLUMNS[@]}"|tr ' ' '\n')" "^$PRE");then
+            break;
+        fi
+    done
     COLUMNS[$COUNTER]=$col
-    CASE+="$(echo $col|cut -c-1)*) echo $COUNTER;; "
+    CASE+="${PRE}*) echo $COUNTER;; "
     COL_TEXT+="$col, "
     # default result column
     COL0=$col
