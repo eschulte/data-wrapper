@@ -207,11 +207,18 @@ res(){ awk "$RES_AWK"; }
 
 act(){
     case $ACT in
-        all)  tr '\n' ','|sed 's/.$//';;
-        sum)  awk '{ sum += $1 }
-                   END { if(NR == 0) print "NA"; else print sum; }';;
-        mean) awk '{ sum += $1 }
-                   END { if(NR == 0) print "NA"; else print sum/NR; }';;
+        all)  awk '{ for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=NF; i++){
+                       for (j=1; j<=NR; j++){
+                         printf "%s", sum[i][j]; if(j<NR) printf ",";}
+                       if(i<NF) printf "/";}}';;
+        sum)  awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=NF; i++){ print sum[i]; }}';;
+        mean) awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=NF; i++){ print sum[i]/NR; }}';;
     esac; }
 
 r_script=""
@@ -280,6 +287,9 @@ case ${#CAT[@]} in
     1)
         CATS="$(echo "$DATA"|awk "{print \$${CAT[0]}}"|sort -u)"
         if $(contains "$ACT" "test");then
+            if [ ${#RES[@]} -gt 1 ];then
+                error "Only one result column at a time for statistical tests.";
+            fi
             echo "[$(echo "$CATS"|wc -l)x$(echo "$CATS"|wc -l)] $(echo $CATS)"
             for x in $CATS;do
                 XS="$(echo "$DATA"|inc ${CAT[0]} $x|res)"
