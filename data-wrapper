@@ -206,48 +206,6 @@ for col in ${RES[@]};do RES_AWK+=" \$$col,";done; RES_AWK=${RES_AWK%?}
 RES_AWK+="; }"
 res(){ awk "$RES_AWK"; }
 
-# Simple stats with awk
-act(){
-    case $ACT in
-        all)  awk '{ for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
-                   END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){
-                       for (j=1; j<=NR; j++){
-                         printf "%s", sum[i][j]; if(j<NR) printf ",";}
-                       if(i<NF) printf " ";}}';;
-        sum)  awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
-                   END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){
-                       printf "%s", sum[i];
-                       if(i<NF) printf " "; }}';;
-        mean) awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
-                   END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){
-                       printf "%s", sum[i]/NR;
-                       if(i<NF) printf " ";}}';;
-        cor) awk '{if(NF>1){ a=$1; b=$2 }else{ a=NR; b=$1 }
-                   sum_a=sum_a+a
-                   records_a[NR]=a
-                   sum_b=sum_b+b
-                   records_b[NR]=b
-                   sum_prod=sum_prod+(a*b); }
-                  END { if(NR == 0) print "NA"; else {
-                   # difference between mean of products and product of means
-                   cov=((sum_prod/NR) - ((sum_a/NR) * (sum_b/NR)))
-                   mean_a=sum_a/NR
-                   mean_b=sum_b/NR
-                   sum_of_squares_a=0
-                   for(x=1;x<=NR;x++){
-                     sum_of_squares_a+=((records_a[x]-mean_a)^2); }
-                   sum_of_squares_b=0
-                   for(x=1;x<=NR;x++){
-                     sum_of_squares_b+=((records_b[x]-mean_b)^2); }
-                   stdev_a=sqrt(sum_of_squares_a/NR)
-                   stdev_b=sqrt(sum_of_squares_b/NR)
-                   if((stdev_a*stdev_b) != 0)
-                     print (cov/(stdev_a*stdev_b)); } }';;
-    esac|sed 's/ /\//g'; }
-
 # More complex stats with R
 r_script=""
 r_script+='d <- t(read.table("stdin", header=FALSE, fill=TRUE));'
@@ -272,6 +230,37 @@ r_test(){
         t_test)   t_test;;
         ks_test) ks_test;;
     esac; }
+cor_script='d <-  read.table("stdin", header=FALSE, fill=TRUE);'
+cor_script+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
+cor_script+='y <- as.vector(d[,2]); col2 <- y[!is.na(y)]; '
+cor_script+='cor.test(col1,col2)'
+cor_test(){
+    Rscript -e "$cor_script" 2>/dev/null \
+        |tr '\n' ' ' \
+        |sed 's/^.*p-value = //;s/ alternative.* cor / /;s/ *$//' \
+        |awk '{printf "%s(%s)", $2, $1}'; }
+
+# Simple stats with awk
+act(){
+    case $ACT in
+        all)  awk '{ for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=NF; i++){
+                       for (j=1; j<=NR; j++){
+                         printf "%s", sum[i][j]; if(j<NR) printf ",";}
+                       if(i<NF) printf " ";}}';;
+        sum)  awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=NF; i++){
+                       printf "%s", sum[i];
+                       if(i<NF) printf " "; }}';;
+        mean) awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=NF; i++){
+                       printf "%s", sum[i]/NR;
+                       if(i<NF) printf " ";}}';;
+        cor) cor_test;;
+    esac|sed 's/ /\//g'; }
 
 # Tabled data or graphs with gnuplot
 post_process(){
