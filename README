@@ -23,9 +23,11 @@ Usage:
 
      Options:
       -h --help ------------- print this help message
-      -i --include CAT=STR -- only include items with CAT=STR in results
-      -e --exclude CAT=STR -- exclude items with CAT=STR from results
-      -b --by [CAT,...] ----- group results by CATs (comma separated)
+      -i --include COL=STR -- only include items with COL=STR in results
+      -e --exclude COL=STR -- exclude items with COL=STR from results
+      -b --by [COL,...] ----- group results by COLs (comma separated)
+      -r --res [COL,...] ---- print results for COLs
+                              (comma separated, defaults to neutral)
       -g --graph ------------ graph mean of results (requires feedgnuplot)
       -o --output FILE ------ save output to FILE
 
@@ -37,8 +39,8 @@ Usage:
       -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
                               results (at most one category, Rscript)
 
-     Categories (CAT):
-      One of algorithm, language, compiler, flag.  Substrings may be
+     Columns (COL):
+      One of algorithm, language, compiler, flag, neutral.  Substrings may be
       used, e.g., "a" for "algorithm".
 
      Examples:
@@ -51,3 +53,4 @@ Usage:
        svg file, use:
 
          neut-viewer -b algo -m -g -o /tmp/by-lang.svg
+
