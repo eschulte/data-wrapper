@@ -86,6 +86,7 @@ SCRIPT:
 # Actions (specify at most one to reduce results):
 #  -m --mean ------------- mean of all matching results
 #  -s --sum -------------- mean of all matching results
+#  -c --cor -------------- Pearson correlation between two categories
 #  -t --t-test ----------- t test between all groups of results
 #                          (use at most one category, requires Rscript)
 #  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
@@ -110,6 +111,7 @@ SCRIPT:
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 error(){ echo "$0: $@" >&2; exit 1; }
 TITLE="$0 $@"
+NUM_ARGS="$#"
 ACT="all"
 OUT=""
 GRAPH=""
@@ -152,8 +154,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:mstkgo: \
-    -l help,include:,exclude:,by:,res:,mean,sum,t-test,ks-test,graph,output: \
+    -o hi:e:b:r:msctkgo: \
+    -l help,include:,exclude:,by:,res:,mean,sum,cor,t-test,ks-test,graph,output: \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -177,6 +179,7 @@ while [ $# -gt 0 ];do
             shift; IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
         -s|--sum)       add_act "sum";;
+        -c|--cor)       add_act "cor";;
         -t|--t-test)    add_act "t_test";;
         -k|--ks-test)   add_act "ks_test";;
         -g|--graph)     GRAPH="yes";;
@@ -187,7 +190,7 @@ while [ $# -gt 0 ];do
     esac
     shift
 done
-if [ ${#RES[@]} -eq 0 ];then $RES[0]=$(row "COL0");fi
+if [ ${#RES[@]} -eq 0 ];then RES[0]=$(row "COL0");fi
 
 # Functions
 inc(){
@@ -199,10 +202,8 @@ exc(){
     awk "{ if (\$$cat != \"$match\") print \$0; }"; }
 
 RES_AWK="{ print"
-for col in ${RES[@]};do RES_AWK+=" \$$col,";done
-RES_AWK=${RES_AWK%?}
+for col in ${RES[@]};do RES_AWK+=" \$$col,";done; RES_AWK=${RES_AWK%?}
 RES_AWK+="; }"
-
 res(){ awk "$RES_AWK"; }
 
 # Simple stats with awk
@@ -224,6 +225,27 @@ act(){
                      for (i=1; i<=NF; i++){
                        printf "%s", sum[i]/NR;
                        if(i<NF) printf " ";}}';;
+        cor) awk '{if(NF>1){ a=$1; b=$2 }else{ a=NR; b=$1 }
+                   sum_a=sum_a+a
+                   records_a[NR]=a
+                   sum_b=sum_b+b
+                   records_b[NR]=b
+                   sum_prod=sum_prod+(a*b); }
+                  END { if(NR == 0) print "NA"; else {
+                   # difference between mean of products and product of means
+                   cov=((sum_prod/NR) - ((sum_a/NR) * (sum_b/NR)))
+                   mean_a=sum_a/NR
+                   mean_b=sum_b/NR
+                   sum_of_squares_a=0
+                   for(x=1;x<=NR;x++){
+                     sum_of_squares_a+=((records_a[x]-mean_a)^2); }
+                   sum_of_squares_b=0
+                   for(x=1;x<=NR;x++){
+                     sum_of_squares_b+=((records_b[x]-mean_b)^2); }
+                   stdev_a=sqrt(sum_of_squares_a/NR)
+                   stdev_b=sqrt(sum_of_squares_b/NR)
+                   if((stdev_a*stdev_b) != 0)
+                     print (cov/(stdev_a*stdev_b)); } }';;
     esac|sed 's/ /\//g'; }
 
 # More complex stats with R
@@ -291,7 +313,12 @@ for ((i=0; i<${#EXC[@]}; i+=2));do
 done
 
 case ${#CAT[@]} in
-    0) echo "$DATA";;
+    0)
+        if [ $NUM_ARGS -eq 0 ];then
+            echo "$DATA"
+        else
+            echo "$DATA"|res|act
+        fi;;
     1)
         CATS="$(echo "$DATA"|awk "{print \$${CAT[0]}}"|sort -u)"
         if $(contains "$ACT" "test");then
