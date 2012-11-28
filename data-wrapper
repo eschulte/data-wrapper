@@ -109,12 +109,12 @@ SCRIPT:
 #   to print a table of the mean value by COL1 and COL2, use:
 #
 #     SCRIPT -b COL1,COL2 -m
-#   
+#
 #   to calculate the total value by COL1, and graph the results to an
 #   svg file, use:
-#   
+#
 #     SCRIPT -b COL1 -m -g -o /tmp/by-lang.svg
-#     
+#
 #
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 error(){ echo "$0: $@" >&2; exit 1; }
@@ -278,23 +278,34 @@ act(){
 # Tabled data or graphs with gnuplot
 post_process(){
     if [ ! -z "$GRAPH" ];then
+        if [ ! -z "$OUT" ];then OUT=" --hardcopy $OUT "; fi
         if [ $(which feedgnuplot >/dev/null 2>/dev/null) ];then
             error "Graphing requires the feedgnuplot executable."
         elif ([ "$ACT" == "all" ] || $(contains "$ACT" "test"));then
-            error "Can't graph $ACT results, must use mean or sum."
-        elif [ ${#CAT[@]} -ne 1 ];then
-            error "Can only graph a single category at a time."
-        else
-            if [ ! -z "$OUT" ];then OUT=" --hardcopy $OUT "; fi
-            feedgnuplot $OUT \
+            # graph a line for each line of output (needs labels)
+            sed 's/,/ /g'|transpose \
+                |feedgnuplot $OUT \
                 --title "$TITLE" \
-                -ymin 0 \
-                --extracmds 'set style fill solid border -1;' \
-                --extracmds 'set key out right;' \
-                --histogram 2 \
-                --curvestyleall 'with boxes' \
-                --dataid \
-                --autolegen
+                -ymin 0  \
+                --lines \
+                --autolegend
+        elif [ ${#CAT[@]} -ne 1 ];then
+            error "TODO: 3D graphs for multiple categories."
+        else
+            # graph a histogram for each line of output
+            if [ ${#RES[@]} -gt 1 ];then
+                error "TODO: clustered histograms for multiple categories."
+            else
+                feedgnuplot $OUT \
+                    --title "$TITLE" \
+                    -ymin 0 \
+                    --extracmds 'set style fill solid border -1;' \
+                    --extracmds 'set key out right;' \
+                    --histogram 2 \
+                    --curvestyleall 'with boxes' \
+                    --dataid \
+                    --autolegend
+            fi
         fi
     else
         if [ ! -z "$OUT" ];then
