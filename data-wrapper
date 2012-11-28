@@ -91,6 +91,7 @@ SCRIPT:
 #                          (use at most one category, requires Rscript)
 #  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
 #                          results (at most one category, Rscript)
+#  -n --normal-test ------ Shapiro-Wilk test for normality (Rscript)
 #
 # Columns (COL):
 #  One of COLUMNS.  Substrings may be
@@ -154,8 +155,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:msctkgo: \
-    -l help,include:,exclude:,by:,res:,mean,sum,cor,t-test,ks-test,graph,output: \
+    -o hi:e:b:r:msctkngo: \
+    -l help,include:,exclude:,by:,res:,mean,sum,cor,t-test,ks-test,normal-test,graph,output: \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -180,6 +181,7 @@ while [ $# -gt 0 ];do
         -m|--mean)      add_act "mean";;
         -s|--sum)       add_act "sum";;
         -c|--cor)       add_act "cor";;
+        -n|--normal-test) add_act "normal";;
         -t|--t-test)    add_act "t_test";;
         -k|--ks-test)   add_act "ks_test";;
         -g|--graph)     GRAPH="yes";;
@@ -239,6 +241,15 @@ cor_test(){
         |tr '\n' ' ' \
         |sed 's/^.*p-value = //;s/ alternative.* cor / /;s/ *$//' \
         |awk '{printf "%s(%s)", $2, $1}'; }
+norm_script='d <- read.table("stdin", header=FALSE, fill=TRUE); '
+norm_script+='shapiro.test(as.vector(d[,1]))'
+norm_test(){
+    Rscript -e "$norm_script" 2>/dev/null \
+        |sed 's/,//g;s/=//g' \
+        |grep p-value \
+        |awk '{printf "%s(%s)", $2, $4}';
+    exit 1
+}
 
 # Simple stats with awk
 act(){
@@ -259,7 +270,8 @@ act(){
                      for (i=1; i<=NF; i++){
                        printf "%s", sum[i]/NR;
                        if(i<NF) printf " ";}}';;
-        cor) cor_test;;
+        cor)    cor_test;;
+        normal) norm_test; exit 1;;
     esac|sed 's/ /\//g'; }
 
 # Tabled data or graphs with gnuplot
