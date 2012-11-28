@@ -1,6 +1,6 @@
 Notes and Tasks                                           -*- org -*-
 
-* Tasks [6/8]
+* Tasks [6/9]
 ** TODO switch from feedgnuplot to gnuplot
 1. removes the least widely installed dependency
 2. provides for more flexibility in producing graphical results
@@ -9,6 +9,9 @@ Notes and Tasks                                           -*- org -*-
 There should be only one way to apply actions, and it should act on
 only one style of data; that output by the =res= method, possibly with
 temporary ACT values.
+
+** TODO compress the data and uuencode
+First check to see at what data size this starts to be an improvement.
 
 ** DONE don't assume unique column names
 Instead of assuming the first letter of every column is unique,
