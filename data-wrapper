@@ -127,7 +127,6 @@ add_cat(){
     local length=${#CAT[@]};
     if [ $length -gt 1 ];then error "Can specify at most two categories.";
                          else CAT[$length]=$cat; fi; }
-add_res(){ RES+=("$1"); }
 add_act(){
     local act="$1";
     if [ ! "$ACT" == "all" ];then error "Can specify at most one action.";
@@ -142,8 +141,6 @@ add_inc_exp(){
         "EXC") EXC+=($cat); EXC+=($it);;
         *) error "Impossible type $type.";;
     esac; }
-
-RES+=$(row "COL0")
 
 DATA="$(cat "$0"|sed -n '/^DATA:/,$p'|tail --lines=+2)"
 
@@ -175,7 +172,7 @@ while [ $# -gt 0 ];do
             SAVE="$IFS"; IFS=","
             for i in $2;do
                 row $i >/dev/null || exit 1
-                RES=$(row $i)
+                RES+=($(row $i))
             done
             shift; IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
@@ -190,6 +187,7 @@ while [ $# -gt 0 ];do
     esac
     shift
 done
+if [ ${#RES[@]} -eq 0 ];then $RES[0]=$(row "COL0");fi
 
 # Functions
 inc(){
@@ -200,9 +198,11 @@ exc(){
     local cat=$1; local match=$2;
     awk "{ if (\$$cat != \"$match\") print \$0; }"; }
 
-RES_AWK="{ print "
-for col in $RES;do RES_AWK+="\$$col ";done
+RES_AWK="{ print"
+for col in ${RES[@]};do RES_AWK+=" \$$col,";done
+RES_AWK=${RES_AWK%?}
 RES_AWK+="; }"
+
 res(){ awk "$RES_AWK"; }
 
 act(){
@@ -212,14 +212,18 @@ act(){
                      for (i=1; i<=NF; i++){
                        for (j=1; j<=NR; j++){
                          printf "%s", sum[i][j]; if(j<NR) printf ",";}
-                       if(i<NF) printf "/";}}';;
+                       if(i<NF) printf " ";}}';;
         sum)  awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
                    END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){ print sum[i]; }}';;
+                     for (i=1; i<=NF; i++){
+                       printf "%s", sum[i];
+                       if(i<NF) printf " "; }}';;
         mean) awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
                    END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){ print sum[i]/NR; }}';;
-    esac; }
+                     for (i=1; i<=NF; i++){
+                       printf "%s", sum[i]/NR;
+                       if(i<NF) printf " ";}}';;
+    esac|sed 's/ /\//g'; }
 
 r_script=""
 r_script+='d <- t(read.table("stdin", header=FALSE, fill=TRUE));'
