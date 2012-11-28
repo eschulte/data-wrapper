@@ -210,20 +210,32 @@ exc(){
     local cat=$1; local match=$2;
     awk "{ if (\$$cat != \"$match\") print \$0; }"; }
 
-RES_AWK="{ print"
-for col in ${RES[@]};do RES_AWK+=" \$$col,";done; RES_AWK=${RES_AWK%?}
-RES_AWK+="; }"
-res(){ awk "$RES_AWK"; }
+res_awk(){
+    echo -n "{ print "
+    for col in ${RES[@]};do
+        echo -n "\$$col";
+        if [ ! "$col" == "${RES[${#RES[@]}-1]}" ];then echo -n ", "; fi
+    done
+    echo "; }";}
+res(){ awk "$(res_awk)"; }
+transpose(){
+    awk '{ for (f=1; f<=NF; f++) a[NR, f] = $f }
+         NF > nf { nf = NF }
+         END { for (f=1; f<= nf; f++)
+                 for (r=1; r<=NR; r++)
+                     printf a[r,f] (r==NR ? RS : FS); }'; }
 
-# More complex stats with R
+# Complex stats with R
 r_script=""
-r_script+='d <- t(read.table("stdin", header=FALSE, fill=TRUE));'
+r_script+='d <- read.table("stdin", header=FALSE, fill=TRUE);'
 r_script+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
 r_script+='y <- as.vector(d[,2]); col2 <- y[!is.na(y)]; '
 t_script="$r_script"
 t_script+='t.test(col1,col2)'
 ks_script="$r_script"
 ks_script+='ks.test(col1,col2)'
+cor_script="$r_script"
+cor_script+='cor.test(col1,col2)'
 t_test(){
     Rscript -e "$t_script" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
@@ -234,15 +246,6 @@ ks_test(){
         |sed 's/,//g;s/=//g' \
         |grep p-value \
         |awk '{printf "%s(%s)", $2, $4}'; }
-r_test(){
-    case "$1" in
-        t_test)   t_test;;
-        ks_test) ks_test;;
-    esac; }
-cor_script='d <-  read.table("stdin", header=FALSE, fill=TRUE);'
-cor_script+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
-cor_script+='y <- as.vector(d[,2]); col2 <- y[!is.na(y)]; '
-cor_script+='cor.test(col1,col2)'
 cor_test(){
     Rscript -e "$cor_script" 2>/dev/null \
         |tr '\n' ' ' \
@@ -255,10 +258,9 @@ norm_test(){
         |sed 's/,//g;s/=//g' \
         |grep p-value \
         |awk '{printf "%s(%s)", $2, $4}';
-    exit 1
-}
+    exit 1; }
 
-# Simple stats with awk
+# Run all actions using awk or R
 act(){
     case $ACT in
         all)  awk '{ for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
@@ -277,8 +279,10 @@ act(){
                      for (i=1; i<=NF; i++){
                        printf "%s", sum[i]/NR;
                        if(i<NF) printf " ";}}';;
-        cor)    cor_test;;
-        normal) norm_test; exit 1;;
+        t_test)  t_test;;
+        ks_test) ks_test;;
+        cor)     cor_test;;
+        normal)  norm_test;;
     esac|sed 's/ /\//g'; }
 
 # Tabled data or graphs with gnuplot
@@ -341,7 +345,7 @@ case ${#CAT[@]} in
                     YS="$(echo "$DATA"|inc ${CAT[0]} $y|res)"
                     sets="$(echo "$(echo "$XS"|tr '\n' ' ')";
                             echo "$(echo "$YS"|tr '\n' ' ')")"
-                    echo -n " $(echo "$sets"|r_test $ACT)"
+                    echo -n " $(echo "$sets"|transpose|act)"
                 done
                 echo ""
             done
