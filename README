@@ -28,16 +28,18 @@ Usage:
       -b --by [COL,...] ----- group results by COLs (comma separated)
       -r --res [COL,...] ---- print results for COLs
                               (comma separated, defaults to neutral)
-      -g --graph ------------ graph mean of results (requires feedgnuplot)
+      -g --graph ------------ graph mean of results (requires gnuplot)
       -o --output FILE ------ save output to FILE
 
      Actions (specify at most one to reduce results):
       -m --mean ------------- mean of all matching results
       -s --sum -------------- mean of all matching results
+      -c --cor -------------- Pearson correlation between two categories
       -t --t-test ----------- t test between all groups of results
                               (use at most one category, requires Rscript)
       -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
                               results (at most one category, Rscript)
+      -n --normal-test ------ Shapiro-Wilk test for normality (Rscript)
 
      Columns (COL):
       One of algorithm, language, compiler, flag, neutral.  Substrings may be

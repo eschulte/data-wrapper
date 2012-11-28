@@ -87,7 +87,7 @@ SCRIPT:
 #  -b --by [COL,...] ----- group results by COLs (comma separated)
 #  -r --res [COL,...] ---- print results for COLs
 #                          (comma separated, defaults to COL0)
-#  -g --graph ------------ graph mean of results (requires feedgnuplot)
+#  -g --graph ------------ graph mean of results (requires gnuplot)
 #  -o --output FILE ------ save output to FILE
 #
 # Actions (specify at most one to reduce results):
@@ -117,6 +117,7 @@ SCRIPT:
 #
 #
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
+has(){ which "$1" >/dev/null 2>/dev/null; }
 error(){ echo "$0: $@" >&2; exit 1; }
 TITLE="$0 $@"
 NUM_ARGS="$#"
@@ -127,6 +128,7 @@ declare -a INC
 declare -a EXC
 declare -a CAT
 declare -a RES
+declare -a RES_NAMES
 row(){ # match categories to rows in the data
     case $1 in
         CASE
@@ -183,6 +185,7 @@ while [ $# -gt 0 ];do
             for i in $2;do
                 row $i >/dev/null || exit 1
                 RES+=($(row $i))
+                RES_NAMES+=($i)
             done
             shift; IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
@@ -199,7 +202,10 @@ while [ $# -gt 0 ];do
     esac
     shift
 done
-if [ ${#RES[@]} -eq 0 ];then RES[0]=$(row "COL0");fi
+if [ ${#RES[@]} -eq 0 ];then
+    RES[0]=$(row "COL0");
+    RES_NAMES[0]="COL0";
+fi
 
 # Functions
 inc(){
@@ -278,35 +284,46 @@ act(){
 # Tabled data or graphs with gnuplot
 post_process(){
     if [ ! -z "$GRAPH" ];then
-        if [ ! -z "$OUT" ];then OUT=" --hardcopy $OUT "; fi
-        if [ $(which feedgnuplot >/dev/null 2>/dev/null) ];then
-            error "Graphing requires the feedgnuplot executable."
+        if [ ! -z "$OUT" ];then OUT="set term $OUT;"; fi
+        TMPFILE="/tmp/$(basename $0).temp-data"
+        if [ $(has gnuplot) ];then
+            error "Graphing requires the gnuplot executable."
         elif ([ "$ACT" == "all" ] || $(contains "$ACT" "test"));then
             # graph a line for each line of output (needs labels)
-            sed 's/,/ /g'|transpose \
-                |feedgnuplot $OUT \
-                --title "$TITLE" \
-                -ymin 0  \
-                --lines \
-                --autolegend
+            MYDATA=$(sed 's/,/ /g'|transpose)
+            echo "$MYDATA" > "$TMPFILE"
+            NUMCOLS=$(echo "$MYDATA"|head -1|awk '{ print NF }')
+            OUT+="set key autotitle columnhead;"
+            OUT+="set title '$TITLE';"
+            OUT+="set yrange [0:];"
+            OUT+="plot for [i=1:$NUMCOLS] '$TMPFILE' u i w l,"
+            gnuplot -persist -e "$OUT"
         elif [ ${#CAT[@]} -ne 1 ];then
             error "TODO: 3D graphs for multiple categories."
         else
             # graph a histogram for each line of output
             if [ ${#RES[@]} -gt 1 ];then
-                error "TODO: clustered histograms for multiple categories."
+                MYDATA=$(sed 's/\// /g')
+                echo "$MYDATA" > "$TMPFILE"
+                OUT+="set title '$TITLE';"
+                OUT+="set style histogram clustered gap 5;"
+                OUT+="set style fill solid border -1;"
+                OUT+="set style data histograms;"
+                OUT+="set yrange [0:];"
+                OUT+="plot '$TMPFILE' u 2:xtic(1) ti '${RES_NAMES[0]}', "
+                OUT+="'' using 3 ti '${RES_NAMES[1]}'"
+                gnuplot -persist -e "$OUT"
             else
-                feedgnuplot $OUT \
-                    --title "$TITLE" \
-                    -ymin 0 \
-                    --extracmds 'set style fill solid border -1;' \
-                    --extracmds 'set key out right;' \
-                    --histogram 2 \
-                    --curvestyleall 'with boxes' \
-                    --dataid \
-                    --autolegend
+                MYDATA=$(sed 's/,/ /g')
+                echo "$MYDATA" > "$TMPFILE"
+                OUT+="set title '$TITLE';"
+                OUT+="set style fill solid border -1;"
+                OUT+="set yrange [0:];"
+                OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
+                gnuplot -persist -e "$OUT"
             fi
         fi
+        # rm "$TMPFILE"        
     else
         if [ ! -z "$OUT" ];then
             echo "# $TITLE">$OUT
