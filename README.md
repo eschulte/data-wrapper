@@ -13,9 +13,7 @@ Wrap text data in a portable shell script allowing easy (re)-analysis.
 Installation
 ------------
 
-Download the script using this link
-"[data-wrapper](https://raw.github.com/eschulte/data-wrapper/master/data-wrapper))"
-and place it in your PATH.
+Download the script ([data-wrapper](https://raw.github.com/eschulte/data-wrapper/master/data-wrapper)) and place it in your PATH.
 
 Usage
 -----
