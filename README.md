@@ -16,7 +16,7 @@ Usage
 1. Run `data-wrapper` on your file of tab-separated data passing in a
    name for each column.
 
-     data-wrapper DATAFILE [COLUMN NAMES]
+        data-wrapper DATAFILE [COLUMN NAMES]
 
 2. This will result in the creation of an executable file named
    `DATAFILE-viewer`.  This file holds all of your data wrapped in a
