@@ -1,0 +1,203 @@
+<h1>Data Wrapper</h1>
+
+<p>Wrap text data in a portable shell script allowing easy (re)-analysis.</p>
+
+<ul>
+<li>Well suited to tabular or relational data with multiple categories.</li>
+<li>An easy way to share both data and analysis (Reproducible Research).</li>
+<li>Easier than continually re-learning how to do simple analytic tasks.</li>
+<li>Very portable, written entire in bash with two optional dependencies.
+<ol>
+<li><code>R</code> for statistical analysis</li>
+<li><code>gnuplot</code> for graphical display of data</li>
+</ol></li>
+</ul>
+
+<h2>Usage</h2>
+
+<ol>
+<li><p>Run <code>data-wrapper</code> on your file of tab-separated data passing in a
+name for each column.</p>
+
+<p>data-wrapper DATAFILE [COLUMN NAMES]</p></li>
+<li><p>This will result in the creation of an executable file named
+<code>DATAFILE-viewer</code>.  This file holds all of your data wrapped in a
+script which provides numerous views into the data.  For more
+information on usage and available outputs and analysis call
+<code>DATAFILE-viewer -h</code>.</p></li>
+</ol>
+<h2>Example</h2>
+
+<p>This example will use Major League Baseball player height and weight
+data from
+<a href="http://wiki.stat.ucla.edu/socr/index.php/SOCR_Data_MLB_HeightsWeights">wiki.stat.ucla.edu</a>
+available <a href="./mlb.txt">here</a> as a text file.</p>
+
+<p>First <code>data-wrapper</code> is used to convert the raw text file into an
+executable.</p>
+
+<pre><code>$ ./data-wrapper mlb.txt name team position height weight age
+
+Wrote script to mlb-viewer.
+</code></pre>
+
+<p>Because gzip compression is used, the executable is slightly smaller
+than the original text file.</p>
+
+<pre><code>$ ls -1s mlb.txt mlb-viewer
+
+48 mlb.txt
+32 mlb-viewer
+</code></pre>
+
+<p>With the  option we can view the functionality provided by the new
+ executable.  For this example only long-form options and
+column names will be used, although they may be abbreviated.</p>
+
+<pre><code>$ ./mlb-viewer -h
+
+Usage: mlb-viewer [options...] [action]
+
+Options:
+ -h --help ------------- print this help message
+ -i --include COL=STR -- only include items with COL=STR in results
+ -e --exclude COL=STR -- exclude items with COL=STR from results
+ -b --by [COL,...] ----- group results by COLs (comma separated)
+ -r --result [COL,...] - print results for COLs
+                         (comma separated, defaults to age)
+ -g --graph ------------ graph mean of results (requires gnuplot)
+ -o --output FILE ------ save output to FILE
+
+Actions (specify at most one to reduce results):
+ -m --mean ------------- mean of all matching results
+ -s --sum -------------- mean of all matching results
+ -c --cor -------------- Pearson correlation between two categories
+ -t --t-test ----------- t test between all groups of results
+                         (use at most one category, requires R)
+ -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
+                         results (at most one category, R)
+ -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
+
+Columns (COL):
+ One of name, team, position, height, weight, age.
+ Unique sub-strings may be.
+
+Examples:
+
+  to print a table of the mean value by name and team, use:
+
+    mlb-viewer -b name,team -m
+
+  to calculate the total value by name, and graph the results to an
+  svg file, use:
+
+    mlb-viewer -b name -m -g -o /tmp/by-lang.svg
+</code></pre>
+
+<p>First lets look at the mean age by position.  If no result column is
+specified, the last column is assumed</p>
+
+<pre><code>$ ./mlb-viewer --by position --mean
+
+Catcher            29.5637
+Designated_Hitter  30.3894
+First_Baseman      29.4747
+Outfielder         28.9535
+Relief_Pitcher     28.5398
+Second_Baseman     29.0269
+Shortstop          28.4029
+Starting_Pitcher   28.1105
+Third_Baseman      28.6911
+</code></pre>
+
+<p>However other result columns may be specified.</p>
+
+<pre><code>$ ./mlb-viewer --by position --result weight --mean
+
+Catcher            204.329
+Designated_Hitter  220.889
+First_Baseman      213.109
+Outfielder         199.113
+Relief_Pitcher     203.517
+Second_Baseman     184.345
+Shortstop          182.923
+Starting_Pitcher   204.361
+Third_Baseman      200.956
+</code></pre>
+
+<p>It is also possible to view results sorted by up to two column at
+once.</p>
+
+<pre><code>$ ./mlb-viewer --by team,position --result weight --mean
+
+[30x9]  Catcher  Designated_Hitter  First_Baseman  Outfielder  Relief_Pitcher  Second_Baseman  Shortstop  Starting_Pitcher  Third_Baseman
+ANA     201.667  NA                 204.2          200.625     201.5           NA              180        207.143           192.5
+ARZ     208.5    NA                 219            200.6       208.857         185             180        220.286           200
+ATL     215      NA                 220            201.571     206.571         176.667         190        189               192.5
+BAL     201.667  197                199            179.714     195             176             209        207.571           215.5
+BOS     210      230                220            202.857     203.364         180             175        210.778           210
+CHC     209.667  NA                 212.5          203.75      210             175             180        203.636           195
+CIN     202.333  NA                 205            202.5       210.909         185             198.5      174.462           193.333
+CLE     200      240                225            193.5       208.462         178.333         185        206               185
+COL     198      224                204            193.571     200.75          177.5           190        201.5             210
+CWS     242.5    219.5              215            201.25      219.125         185             187        210.143           207.5
+DET     204      200                222.5          203.333     210.75          187.667         183.667    204.429           195
+FLA     217.5    NA                 180            194.143     204.167         200             182.5      215.4             205
+HOU     186.667  NA                 205            212         202.3           186.2           170        195.714           210
+KC      205      225                212.5          196.667     193.333         180             165        199.667           210
+LA      196      NA                 203.667        200.333     204.4           200             165        223.167           187.5
+MIN     210      217.5              228            197.6       202             178             180        210.286           185.333
+MLW     203.75   NA                 260            203.5       207             192.5           186.333    209.714           207
+NYM     210      NA                 209            195.143     196.154         181.5           175        203               200
+NYY     197.5    230                210.333        197.2       217.5           189             195        209.429           210
+OAK     203.333  226                207            211.2       191.364         180             181.667    208.75            188
+PHI     197.5    205                230.5          193.833     188.818         187.5           167        199.875           190
+PIT     212.5    NA                 208.333        191.429     210.4           200             192        207.5             192
+SD      215.5    200                220            206.571     203.615         182.5           205        201               NA
+SEA     195      NA                 228.5          193.143     202.2           181.5           170        201.375           220
+SF      221.5    NA                 212.5          200.714     204             185.5           175        205.429           197
+STL     216.5    NA                 207.5          196.667     199.636         182.5           165        206.333           230
+TB      193.333  205                200            206.2       200.7           192             200        192.111           180
+TEX     204.25   250                220            200.833     203.818         175             175        204               200
+TOR     183.5    235                227            199.667     202.167         191.333         180        208.286           225
+WAS     188      NA                 227            200.286     202.714         160             189.333    197.167           210
+</code></pre>
+
+<p>Or to show multiple result columns at once.</p>
+
+<pre><code>$ ./mlb-viewer --by position --result weight,height --mean
+
+Catcher            204.329/72.7237
+Designated_Hitter  220.889/74.2222
+First_Baseman      213.109/74
+Outfielder         199.113/73.0103
+Relief_Pitcher     203.517/74.3746
+Second_Baseman     184.345/71.3621
+Shortstop          182.923/71.9038
+Starting_Pitcher   204.361/74.7195
+Third_Baseman      200.956/73.0444
+</code></pre>
+
+<p>If your system has <code>gnuplot</code> installed, then these results may be graphed.</p>
+
+<pre><code>$ ./mlb-viewer --by position --result weight,height --mean -g
+</code></pre>
+
+<p><img src="./weight-height-by-pos.svg" alt="weight-height-by-pos.svg" /></p>
+
+<p>If your system has <code>R</code> installed than statistical tests may be
+performed on the data.</p>
+
+<pre><code>$ ./mlb-viewer --by position --result weight --ks-test
+
+[9x9]              Catcher            Designated_Hitter  First_Baseman      Outfielder       Relief_Pitcher  Second_Baseman     Shortstop          Starting_Pitcher  Third_Baseman
+Catcher            0(1)               0.4766(0.002689)   0.2854(0.01105)    0.1285(0.3284)   0.0769(0.862)   0.5413(8.5e-09)    0.497(4.762e-07)   0.0431(0.9999)    0.126(0.7604)
+Designated_Hitter  0.1009(0.9984)     0(1)               0.2879(0.211)      0.3482(0.03682)  0.2143(0.4149)  0.3525(0.06584)    0.2521(0.3631)     0.1629(0.7691)    0.1111(0.9973)
+First_Baseman      0.2222(0.08551)    0.2465(0.3823)     0(1)               0.1318(0.4464)   0.1175(0.538)   0.6323(3.148e-10)  0.6171(2.877e-09)  0.0666(0.9898)    0.3758(0.001844)
+Outfielder         0.2063(0.01914)    0.4525(0.002355)   0.3271(0.0002085)  0(1)             0.1013(0.1697)  0.4533(2.155e-08)  0.3836(1.146e-05)  0.1319(0.05494)   0.0974(0.8792)
+Relief_Pitcher     0.0993(0.5821)     0.3905(0.01112)    0.2583(0.003869)   0.1152(0.08253)  0(1)            0.4839(2.192e-10)  0.4186(3.231e-07)  0.0446(0.958)     0.1206(0.6154)
+Second_Baseman     0.4229(1.555e-05)  0.7931(6.25e-08)   0.6784(1.04e-11)   0.1266(0.4719)   0.14(0.2922)    0(1)               0.1412(0.6447)     0.2408(0.009694)  0.5188(2.386e-06)
+Shortstop          0.3775(0.0003011)  0.7115(2.636e-06)  0.5885(1.826e-08)  0.117(0.6288)    0.15(0.2677)    0.1505(0.5634)     0(1)               0.2251(0.02806)   0.4491(0.0001186)
+Starting_Pitcher   0.1288(0.3054)     0.3565(0.02911)    0.2421(0.01144)    0.1158(0.125)    0.0575(0.7837)  0.521(2.949e-11)   0.4514(7.115e-08)  0(1)              0.1575(0.312)
+Third_Baseman      0.1216(0.7971)     0.4667(0.007396)   0.3111(0.01661)    0.0943(0.9016)   0.127(0.5493)   0.4379(0.0001202)  0.4214(0.0003808)  0.1338(0.5146)    0(1)
+</code></pre>
