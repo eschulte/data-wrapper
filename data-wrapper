@@ -85,7 +85,7 @@ SCRIPT:
 #  -i --include COL=STR -- only include items with COL=STR in results
 #  -e --exclude COL=STR -- exclude items with COL=STR from results
 #  -b --by [COL,...] ----- group results by COLs (comma separated)
-#  -r --res [COL,...] ---- print results for COLs
+#  -r --result [COL,...] - print results for COLs
 #                          (comma separated, defaults to COL0)
 #  -g --graph ------------ graph mean of results (requires gnuplot)
 #  -o --output FILE ------ save output to FILE
@@ -101,8 +101,8 @@ SCRIPT:
 #  -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
 #
 # Columns (COL):
-#  One of COLUMNS.  Substrings may be
-#  used, e.g., "a" for "algorithm".
+#  One of COLUMNS.
+#  Unique sub-strings may be.
 #
 # Examples:
 #
@@ -165,12 +165,12 @@ HELP_TEXT=$(cat "$0" \
 
 eval set -- $(getopt \
     -o hi:e:b:r:msctkngo: \
-    -l help,include:,exclude:,by:,res:,mean,sum,cor,t-test,ks-test,normal-test,graph,output: \
+    -l help,include:,exclude:,by:,result:,mean,sum,cor,t-test,ks-test,normal-test,graph,output: \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
     case $1 in
-        -h|--help)      echo "$HELP_TEXT" && exit 1;;
+        -h|--help)      echo "$HELP_TEXT" && exit 0;;
         -i|--include)   add_inc_exp "INC" "$2"; shift;;
         -e|--exclude)   add_inc_exp "EXC" "$2"; shift;;
         -b|--by)
@@ -180,7 +180,7 @@ while [ $# -gt 0 ];do
                 add_cat $(row $i)
             done
             shift; IFS="$SAVE";;
-        -r|--res)
+        -r|--result)
             SAVE="$IFS"; IFS=","
             for i in $2;do
                 row $i >/dev/null || exit 1
