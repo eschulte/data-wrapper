@@ -1,5 +1,5 @@
 Data Wrapper
-============
+------------
 
 Wrap text data in a portable shell script allowing easy (re)-analysis.
 
