@@ -88,9 +88,9 @@ test_contains "mlb-viewer" ls -1s "mlb.txt mlb-viewer"
 ## Test help output
 cat <<EOF
 
-With the `-h` option we can view the functionality provided by the new
-`mlb-viewer` executable.  For this example only long-form options and
-column names will be used, although they may be abbreviated.
+With the \`-h\` option we can view the functionality provided by the
+new \`mlb-viewer\` executable.  For this example only long-form
+options and column names will be used.
 
 EOF
 
@@ -103,7 +103,8 @@ done
 cat <<EOF
 
 First lets look at the mean age by position.  If no result column is
-specified, the last column is assumed
+specified, the last column is assumed which in this case is the age of
+the payer.
 
 EOF
 test_contains "29.56" ./mlb-viewer --by position --mean
@@ -120,7 +121,7 @@ test_contains "204.329" ./mlb-viewer --by position --result weight --mean
 cat <<EOF
 
 It is also possible to view results sorted by up to two column at
-once.
+once; in this case by both team and position.
 
 EOF
 test_contains "201.667" ./mlb-viewer --by team,position --result weight --mean
@@ -128,7 +129,8 @@ test_contains "201.667" ./mlb-viewer --by team,position --result weight --mean
 ## Test multiple results
 cat <<EOF
 
-Or to show multiple result columns at once.
+Or to show multiple result columns at once; in this case both weight
+and height.
 
 EOF
 test_contains "204.329/72.7237" ./mlb-viewer --by position --result weight,height --mean
@@ -139,8 +141,8 @@ cat <<EOF
 If your system has \`gnuplot\` installed, then these results may be graphed.
 
 EOF
-test_exit ./mlb-viewer --by position --result weight,height --mean -g
-./mlb-viewer --by position --result weight,height --mean -g -o weight-height-by-pos.svg >/dev/null
+echo ./mlb-viewer --by position --result weight,height --mean --graph|examplize
+./mlb-viewer -b p -r w,h -m -g -o weight-height-by-pos.svg >/dev/null
 should_exist "weight-height-by-pos.svg"
 
 cat <<EOF
@@ -157,9 +159,25 @@ EOF
 cat <<EOF
 
 If your system has \`R\` installed than statistical tests may be
-performed on the data.
+performed on the data.  In the following example, we use a T-test to
+calculate the significance of the difference in weight distribution
+between every pair of positions.
 
 EOF
-test_contains "0(1)" ./mlb-viewer --by position --result weight --ks-test
-# TODO: failing test
-# test_not_contains "(<)" ./mlb-viewer --by position --result weight --t-test
+test_contains "0(1)" ./mlb-viewer --by position --result weight --t-test
+
+## Test normal calculation
+cat <<EOF
+
+T tests like the one above should only be used on normal
+distributions.  We can test for normality of the distributions by
+position with the following.
+
+EOF
+test_contains "0.9" ./mlb-viewer --by position --result weight --normal
+
+cat <<EOF
+
+Turns out most of these look pretty normal, aside from the infield.
+
+EOF

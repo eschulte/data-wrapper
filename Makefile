@@ -5,8 +5,10 @@ VIEWER=$(DATA:=-viewer)
 
 .PHONY: check clean real-clean
 
-%-viewer: %
-	$(DC) $<
+all: index.html
+
+mlb-viewer: mlb.txt $(DC)
+	$(DC) mlb.txt name team position height weight age
 
 test.output: mlb.txt run.sh data-wrapper
 	@./run.sh |tee test.output;
