@@ -69,7 +69,7 @@ SED+="s/CASE/$CASE/g;"
 # exit 0
 
 echo "$SCRIPT"|sed "$SED" > $SCRIPTFILE
-cat "$DATAFILE" >> $SCRIPTFILE
+cat "$DATAFILE"|gzip|uuencode - >> $SCRIPTFILE
 chmod +x $SCRIPTFILE
 echo "Wrote script to $SCRIPTFILE."
 exit 0;
@@ -154,7 +154,7 @@ add_inc_exp(){
         *) error "Impossible type $type.";;
     esac; }
 
-DATA="$(cat "$0"|sed -n '/^DATA:/,$p'|tail --lines=+2)"
+DATA="$(cat "$0"|sed -n '/^DATA:/,$p'|tail --lines=+2|uudecode|gunzip)"
 
 HELP_TEXT=$(cat "$0" \
         |sed '/^[^#]/q' \
