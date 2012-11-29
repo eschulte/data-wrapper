@@ -119,19 +119,19 @@
 		<text> 75</text>
 	</g>
 	<path  d='M71.9,54.1 L71.9,412.2 L498.9,412.2 L498.9,54.1 L71.9,54.1 Z  h0.01'/>	<g transform="translate(17.6,233.2) rotate(270)" style="stroke:none; fill:black; font-family:Arial; font-size:12.00pt; text-anchor:middle">
-		<text>w</text>
+		<text>weight</text>
 	</g>
 	<g transform="translate(570.4,233.2) rotate(270)" style="stroke:none; fill:black; font-family:Arial; font-size:12.00pt; text-anchor:middle">
-		<text>h</text>
+		<text>height</text>
 	</g>
 	<g transform="translate(285.4,31.6)" style="stroke:none; fill:black; font-family:Arial; font-size:12.00pt; text-anchor:middle">
-		<text>mlb-viewer -b p -r w,h -m -g -o weight-height-by-pos.svg</text>
+		<text>mlb-viewer -b p -r weight,height -m -g -o weight-height-by-pos.svg</text>
 	</g>
 </g>
 	<g id="gnuplot_plot_1" ><title>gnuplot_plot_1</title>
 <g style="fill:none; color:red; stroke:currentColor; stroke-width:1.00; stroke-linecap:butt; stroke-linejoin:miter">
 	<g transform="translate(431.8,76.6)" style="stroke:none; fill:black; font-family:Arial; font-size:12.00pt; text-anchor:end">
-		<text>w</text>
+		<text>weight</text>
 	</g>
 	<g style = 'stroke:none; shape-rendering:crispEdges'>
 		<polygon fill = 'currentColor' points = '440.1,76.6 482.3,76.6 482.3,67.6 440.1,67.6 '/>
@@ -168,7 +168,7 @@
 	<g id="gnuplot_plot_2" ><title>gnuplot_plot_2</title>
 <g style="fill:none; color:green; stroke:currentColor; stroke-width:1.00; stroke-linecap:butt; stroke-linejoin:miter">
 	<g transform="translate(431.8,94.6)" style="stroke:none; fill:black; font-family:Arial; font-size:12.00pt; text-anchor:end">
-		<text>h</text>
+		<text>height</text>
 	</g>
 	<g style = 'stroke:none; shape-rendering:crispEdges'>
 		<polygon fill = 'currentColor' points = '440.1,94.6 482.3,94.6 482.3,85.6 440.1,85.6 '/>

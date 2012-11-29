@@ -142,7 +142,7 @@ If your system has \`gnuplot\` installed, then these results may be graphed.
 
 EOF
 echo ./mlb-viewer --by position --result weight,height --mean --graph|examplize
-./mlb-viewer -b p -r w,h -m -g -o weight-height-by-pos.svg >/dev/null
+./mlb-viewer -b p -r weight,height -m -g -o weight-height-by-pos.svg >/dev/null
 should_exist "weight-height-by-pos.svg"
 
 cat <<EOF
