@@ -310,8 +310,14 @@ post_process(){
                 OUT+="set style fill solid border -1;"
                 OUT+="set style data histograms;"
                 OUT+="set yrange [0:];"
-                OUT+="plot '$TMPFILE' u 2:xtic(1) ti '${RES_NAMES[0]}', "
-                OUT+="'' using 3 ti '${RES_NAMES[1]}'"
+                OUT+="set y2range [0:];"
+                OUT+="set y2tics;"
+                OUT+="set ytics nomirror;"
+                OUT+="set ylabel '${RES_NAMES[0]}';"
+                OUT+="set y2label '${RES_NAMES[1]}';"
+                OUT+="set key out above;"
+                OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
+                OUT+="'$TMPFILE' u 3 axes x1y2 ti '${RES_NAMES[1]}'"
                 gnuplot -persist -e "$OUT"
             else
                 MYDATA=$(sed 's/,/ /g')

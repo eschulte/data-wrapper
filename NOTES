@@ -1,11 +1,11 @@
 Notes and Tasks                                           -*- org -*-
 
 * Tasks [8/10]
-** TODO switch from feedgnuplot to gnuplot
+** DONE switch from feedgnuplot to gnuplot
 1. removes the least widely installed dependency
 2. provides for more flexibility in producing graphical results
 
-** DONE graphs for multiple-category output
+** STARTED graphs for multiple-category output
 - [[file:data-wrapper::error%20"TODO:%203D%20graphs%20for%20multiple%20categories."][file:data-wrapper::error "TODO: 3D graphs for multiple categories."]]
 - [[file:data-wrapper::error%20"TODO:%20clustered%20histograms%20for%20multiple%20categories."][file:data-wrapper::error "TODO: clustered histograms for multiple categories."]]
 
