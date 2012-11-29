@@ -36,7 +36,7 @@ HELP_TEXT=$(cat "$0" \
 if $(contains "$1" "^\-\?\-h\(elp\|$\)");then echo "$HELP_TEXT"; exit 1;fi
 SCRIPT="$(cat "$0"|sed -n '/^SCRIPT:/,$p'|tail --lines=+2)"
 DATAFILE="$1"; shift;
-SCRIPTFILE="$DATAFILE-viewer"
+SCRIPTFILE="$(basename $DATAFILE .txt)-viewer"
 COUNTER=0
 CASE=""
 COL_TEXT=""
