@@ -310,6 +310,7 @@ post_process(){
                 OUT+="set style histogram clustered gap 5;"
                 OUT+="set style fill solid border -1;"
                 OUT+="set style data histograms;"
+                OUT+="set xtics rotate by -45;"
                 OUT+="set y2tics;"
                 OUT+="set ytics nomirror;"
                 OUT+="set ylabel '${RES_NAMES[0]}';"
@@ -322,6 +323,7 @@ post_process(){
                 echo "$MYDATA" > "$TMPFILE"
                 OUT+="set title '$TITLE';"
                 OUT+="set style fill solid border -1;"
+                OUT+="set xtics rotate by -45;"
                 OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
                 gnuplot -persist -e "$OUT"
             fi
