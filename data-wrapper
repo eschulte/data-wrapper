@@ -297,7 +297,6 @@ post_process(){
             NUMCOLS=$(echo "$MYDATA"|head -1|awk '{ print NF }')
             OUT+="set key autotitle columnhead;"
             OUT+="set title '$TITLE';"
-            OUT+="set yrange [0:];"
             OUT+="plot for [i=1:$NUMCOLS] '$TMPFILE' u i w l,"
             gnuplot -persist -e "$OUT"
         elif [ ${#CAT[@]} -ne 1 ];then
@@ -311,8 +310,6 @@ post_process(){
                 OUT+="set style histogram clustered gap 5;"
                 OUT+="set style fill solid border -1;"
                 OUT+="set style data histograms;"
-                OUT+="set yrange [0:];"
-                OUT+="set y2range [0:];"
                 OUT+="set y2tics;"
                 OUT+="set ytics nomirror;"
                 OUT+="set ylabel '${RES_NAMES[0]}';"
@@ -325,7 +322,6 @@ post_process(){
                 echo "$MYDATA" > "$TMPFILE"
                 OUT+="set title '$TITLE';"
                 OUT+="set style fill solid border -1;"
-                OUT+="set yrange [0:];"
                 OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
                 gnuplot -persist -e "$OUT"
             fi
