@@ -1,7 +1,7 @@
 Data Wrapper
 ------------
 
-Wrap text data in a portable shell script allowing easy (re)-analysis.
+wrap text data in a portable script to share both data and analysis
 
 - Well suited to tabular or relational data with multiple categories.
 - An easy way to share both data and analysis (Reproducible Research).
