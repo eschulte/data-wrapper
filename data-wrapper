@@ -95,10 +95,10 @@ SCRIPT:
 #  -s --sum -------------- mean of all matching results
 #  -c --cor -------------- Pearson correlation between two categories
 #  -t --t-test ----------- t test between all groups of results
-#                          (use at most one category, requires Rscript)
+#                          (use at most one category, requires R)
 #  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
-#                          results (at most one category, Rscript)
-#  -n --normal-test ------ Shapiro-Wilk test for normality (Rscript)
+#                          results (at most one category, R)
+#  -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
 #
 # Columns (COL):
 #  One of COLUMNS.  Substrings may be
