@@ -3,7 +3,7 @@ DC=./data-wrapper
 DATA=mlb
 VIEWER=$(DATA:=-viewer)
 
-.PHONY: check clean real-clean
+.PHONY: check clean
 
 all: index.html
 
@@ -23,7 +23,4 @@ index.html: README.md test.output prefix.html
 check: test.output
 
 clean:
-	rm -f $(VIEWER) test.output
-
-real-clean: clean
-	rm -f weight-height-by-pos.svg index.html
+	rm -f test.output
