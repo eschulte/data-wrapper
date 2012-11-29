@@ -9,22 +9,22 @@
 #  columns of data in DATAFILE in order.  So for example, with data
 #  like the following,
 #
-#     bubble cpp g++ O0 395
-#     bubble cpp g++ O2 412
-#     insertion c clang O0 393
-#     insertion c clang O1 469
-#     insertion c gcc O0 307
-#     insertion c gcc O1 337
+#     Adam_Donachie   BAL     Catcher 74      180     22.99
+#     Paul_Bako       BAL     Catcher 74      215     34.69
+#     Ramon_Hernandez BAL     Catcher 72      210     30.78
+#     Kevin_Millar    BAL     First_Baseman   72      210     35.43
+#     Chris_Gomez     BAL     First_Baseman   73      188     35.71
+#     Brian_Roberts   BAL     Second_Baseman  69      176     29.39
+#     Miguel_Tejada   BAL     Shortstop       69      209     30.77
+#     Melvin_Mora     BAL     Third_Baseman   71      200     35.07
+#     Aubrey_Huff     BAL     Third_Baseman   76      231     30.19
+#     Adam_Stern      BAL     Outfielder      71      180     27.05
 #     ...
 #
 #  Run the following to generate an executable data viewer named
 #  neut-viewer.
 #
-#     data-viewer neut algorithm language compiler flag result
-#
-#
-# NOTE: for now, all column names must have unique first letters
-#
+#     data-viewer mlb name team position height weight age
 #
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 HELP_TEXT=$(cat "$0" \
