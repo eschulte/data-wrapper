@@ -10,6 +10,13 @@ Wrap text data in a portable shell script allowing easy (re)-analysis.
   1. `R` for statistical analysis
   2. `gnuplot` for graphical display of data
 
+Instillation
+------------
+
+Just download the script from here
+[data-wrapper](https://raw.github.com/eschulte/data-wrapper/master/data-wrapper)
+and place it somewhere your PATH.
+
 Usage
 -----
 
