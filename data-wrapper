@@ -239,7 +239,7 @@ t_test(){
     Rscript -e "$r_prefix t.test(col1,col2)" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
-        |awk '{printf "%s(%s)", $2, $6}'; }
+        |awk '{printf "%s(%s%s)", $2, $6, $7}'; }
 ks_test(){
     Rscript -e "$r_prefix ks.test(col1,col2)" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
