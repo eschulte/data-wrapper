@@ -8,12 +8,15 @@ VIEWER=$(DATA:=-viewer)
 %-viewer: %
 	$(DC) $<
 
-check: clean
-	@./run.sh >test.output;
+test.output: mlb.txt run.sh data-wrapper
+	@./run.sh |tee test.output;
 	@if [ $$? -eq 0 ];then echo "PASSED";else echo "FAILED";fi
 
-index.html: README.md
-	$(MD) $< > $@;
+index.html: README.md test.output
+	$(MD) README.md > $@;
+	$(MD) test.output >> $@;
+
+check: test.output
 
 clean:
-	rm -f $(VIEWER) test.output index.html
+	rm -f $(VIEWER) weight-height-by-pos.svg test.output index.html
