@@ -19,7 +19,7 @@ index.html: README.md test.output
 check: test.output
 
 clean:
-	rm -f $(VIEWER) weight-height-by-pos.svg test.output
+	rm -f $(VIEWER) test.output
 
 real-clean: clean
-	rm -f index.html
+	rm -f weight-height-by-pos.svg index.html
