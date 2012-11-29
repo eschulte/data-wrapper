@@ -61,7 +61,9 @@ Example
 This example will use Major League Baseball player height and weight
 data from
 [wiki.stat.ucla.edu](http://wiki.stat.ucla.edu/socr/index.php/SOCR_Data_MLB_HeightsWeights)
-available [here](./mlb.txt) as a text file.
+available at [mlb.txt](./mlb.txt) as a text file.  The wrapped
+executable script version of this data is available at
+[mlb-viewer](./mlb-viewer).
 
 EOF
 
