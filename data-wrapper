@@ -119,7 +119,7 @@ SCRIPT:
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 has(){ which "$1" >/dev/null 2>/dev/null; }
 error(){ echo "$0: $@" >&2; exit 1; }
-TITLE="$0 $@"
+TITLE="$(basename $0) $@"
 NUM_ARGS="$#"
 ACT="all"
 OUT=""
@@ -284,7 +284,9 @@ act(){
 # Tabled data or graphs with gnuplot
 post_process(){
     if [ ! -z "$GRAPH" ];then
-        if [ ! -z "$OUT" ];then OUT="set term $OUT;"; fi
+        if [ ! -z "$OUT" ];then
+            OUT="set term '$(echo "$OUT"|sed 's/^.*\.//')';set output '$OUT';";
+        fi
         TMPFILE="/tmp/$(basename $0).temp-data"
         if [ $(has gnuplot) ];then
             error "Graphing requires the gnuplot executable."
@@ -315,7 +317,6 @@ post_process(){
                 OUT+="set ytics nomirror;"
                 OUT+="set ylabel '${RES_NAMES[0]}';"
                 OUT+="set y2label '${RES_NAMES[1]}';"
-                OUT+="set key out above;"
                 OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
                 OUT+="'$TMPFILE' u 3 axes x1y2 ti '${RES_NAMES[1]}'"
                 gnuplot -persist -e "$OUT"
