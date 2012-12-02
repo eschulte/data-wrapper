@@ -50,7 +50,7 @@ for col in $@;do
         fi
     done
     COLUMNS[$COUNTER]=$col
-    CASE+="${PRE}*) echo $COUNTER;; "
+    CASE="${PRE}*) echo $COUNTER;; ${CASE}"
     COL_TEXT+="$col, "
     # default result column
     COL0=$col
