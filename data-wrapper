@@ -89,6 +89,7 @@ SCRIPT:
 #                          (comma separated, defaults to COL0)
 #  -g --graph ------------ graph mean of results (requires gnuplot)
 #  -o --output FILE ------ save output to FILE
+#  -R --raw -------------- don't pretty print output
 #
 # Actions (specify at most one to reduce results):
 #  -m --mean ------------- mean of all matching results
@@ -123,6 +124,7 @@ TITLE="$(basename $0) $@"
 NUM_ARGS="$#"
 ACT="all"
 OUT=""
+RAW=""
 GRAPH=""
 declare -a INC
 declare -a EXC
@@ -164,8 +166,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:msctkngo: \
-    -l help,include:,exclude:,by:,result:,mean,sum,cor,t-test,ks-test,normal-test,graph,output: \
+    -o hi:e:b:r:msctkngo:R \
+    -l help,include:,exclude:,by:,result:,mean,sum,cor,t-test,ks-test,normal-test,graph,output:,raw \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -196,6 +198,7 @@ while [ $# -gt 0 ];do
         -k|--ks-test)   add_act "ks_test";;
         -g|--graph)     GRAPH="yes";;
         -o|--output)    OUT="$2"; shift;;
+        -R|--raw)       RAW="yes";;
         (--) shift; break;;
         (-*) error "unrecognized option $1";;
         (*)  break;;
@@ -254,7 +257,7 @@ norm_test(){
     Rscript -e "$r_prefix shapiro.test(col1)" \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
-        |awk '{printf "%s(%s)", $2, $4}'; }
+        |awk '{printf "%s(%s%s)", $2, $4, $5}'; }
 
 # Run all actions using awk or R
 act(){
@@ -338,7 +341,11 @@ post_process(){
             cat >>$OUT
             echo "Wrote output to $OUT"
         else
-            column -t
+            if [ ! -z "$RAW" ];then
+                cat
+            else
+                column -t
+            fi
         fi
     fi; }
 
