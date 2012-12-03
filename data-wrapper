@@ -276,10 +276,10 @@ act(){
                        printf "%s", sum[i];
                        if(i<NF) printf " "; }}';;
         mean) awk '{ if( NF > max_nf ) { max_nf = NF; }
-                     for (i=1; i<=NF; i++){ sum[i] += $i; } }
+                     for (i=1; i<=NF; i++){ sum[i] += $i; count[i]++; } }
                    END { if(NR == 0) print "NA"; else
                      for (i=1; i<=max_nf; i++){
-                       printf "%s", sum[i]/NR;
+                       printf "%s", sum[i]/count[i];
                        if(i<NF) printf " ";}}';;
         t_test)  t_test;;
         ks_test) ks_test;;
