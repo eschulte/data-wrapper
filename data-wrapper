@@ -259,9 +259,10 @@ norm_test(){
 # Run all actions using awk or R
 act(){
     case $ACT in
-        all)  awk '{ for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
+        all)  awk '{ if( NF > max_nf ) { max_nf = NF; }
+                     for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
                    END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){
+                     for (i=1; i<=max_nf; i++){
                        for (j=1; j<=NR; j++){
                          printf "%s", sum[i][j]; if(j<NR) printf ",";}
                        if(i<NF) printf " ";}}';;
