@@ -94,6 +94,7 @@ SCRIPT:
 # Actions (specify at most one to reduce results):
 #  -m --mean ------------- mean of all matching results
 #  -s --sum -------------- mean of all matching results
+#  -C --count ------------ count all matching results
 #  -c --cor -------------- Pearson correlation between two categories
 #  -t --t-test ----------- t test between all groups of results
 #                          (use at most one category, requires R)
@@ -166,8 +167,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:msctkngo:R \
-    -l help,include:,exclude:,by:,result:,mean,sum,cor,t-test,ks-test,normal-test,graph,output:,raw \
+    -o hi:e:b:r:msCctkngo:R \
+    -l help,include:,exclude:,by:,result:,mean,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -192,6 +193,7 @@ while [ $# -gt 0 ];do
             shift; IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
         -s|--sum)       add_act "sum";;
+        -C|--count)     add_act "count";;
         -c|--cor)       add_act "cor";;
         -n|--normal-test) add_act "normal";;
         -t|--t-test)    add_act "t_test";;
@@ -274,6 +276,12 @@ act(){
                    END { if(NR == 0) print "NA"; else
                      for (i=1; i<=max_nf; i++){
                        printf "%s", sum[i];
+                       if(i<NF) printf " "; }}';;
+        count)  awk '{ if( NF > max_nf ) { max_nf = NF; }
+                     for (i=1; i<=NF; i++){ count[i]++; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=max_nf; i++){
+                       printf "%s", count[i];
                        if(i<NF) printf " "; }}';;
         mean) awk '{ if( NF > max_nf ) { max_nf = NF; }
                      for (i=1; i<=NF; i++){ sum[i] += $i; count[i]++; } }
