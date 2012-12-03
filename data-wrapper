@@ -117,6 +117,9 @@ SCRIPT:
 #
 #     SCRIPT -b COL1 -m -g -o /tmp/by-lang.svg
 #
+# Created using `data-wrapper'.
+# (see https://github.com/eschulte/data-wrapper)
+#
 #
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 has(){ which "$1" >/dev/null 2>/dev/null; }
