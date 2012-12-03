@@ -180,6 +180,7 @@ test_contains "0.9" ./mlb-viewer --by position --result weight --normal
 
 cat <<EOF
 
-Turns out most of these look pretty normal, aside from the infield.
+Turns out most of these look pretty normal, aside from the pitchers
+and outfielders.
 
 EOF

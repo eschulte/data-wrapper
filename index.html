@@ -66,7 +66,7 @@ than the original text file.</p>
 <pre><code>$ ls -1s mlb.txt mlb-viewer
 
 48 mlb.txt
-32 mlb-viewer
+36 mlb-viewer
 </code></pre>
 
 <p>With the <code>-h</code> option we can view the functionality provided by the
@@ -86,16 +86,19 @@ Options:
                          (comma separated, defaults to age)
  -g --graph ------------ graph mean of results (requires gnuplot)
  -o --output FILE ------ save output to FILE
+ -R --raw -------------- don't pretty print output
 
 Actions (specify at most one to reduce results):
  -m --mean ------------- mean of all matching results
  -s --sum -------------- mean of all matching results
+ -C --count ------------ count all matching results
  -c --cor -------------- Pearson correlation between two categories
  -t --t-test ----------- t test between all groups of results
                          (use at most one category, requires R)
  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
                          results (at most one category, R)
  -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
+                         (null hypothesis is normal data)
 
 Columns (COL):
  One of name, team, position, height, weight, age.
@@ -111,6 +114,9 @@ Examples:
   svg file, use:
 
     mlb-viewer -b name -m -g -o /tmp/by-lang.svg
+
+Created using `data-wrapper'.
+(see https://github.com/eschulte/data-wrapper)
 </code></pre>
 
 <p>First lets look at the mean age by position.  If no result column is
@@ -126,7 +132,7 @@ Outfielder         28.9535
 Relief_Pitcher     28.5398
 Second_Baseman     29.0269
 Shortstop          28.4029
-Starting_Pitcher   28.1105
+Starting_Pitcher   28.2382
 Third_Baseman      28.6911
 </code></pre>
 
@@ -242,5 +248,6 @@ Starting_Pitcher   0.9085(2.126e-10)
 Third_Baseman      0.9806(0.6437)
 </code></pre>
 
-<p>Turns out most of these look pretty normal, aside from the infield.</p>
+<p>Turns out most of these look pretty normal, aside from the pitchers
+and outfielders.</p>
 </body></html>

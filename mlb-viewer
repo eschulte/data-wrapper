@@ -11,16 +11,19 @@
 #                          (comma separated, defaults to age)
 #  -g --graph ------------ graph mean of results (requires gnuplot)
 #  -o --output FILE ------ save output to FILE
+#  -R --raw -------------- don't pretty print output
 #
 # Actions (specify at most one to reduce results):
 #  -m --mean ------------- mean of all matching results
 #  -s --sum -------------- mean of all matching results
+#  -C --count ------------ count all matching results
 #  -c --cor -------------- Pearson correlation between two categories
 #  -t --t-test ----------- t test between all groups of results
 #                          (use at most one category, requires R)
 #  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
 #                          results (at most one category, R)
 #  -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
+#                          (null hypothesis is normal data)
 #
 # Columns (COL):
 #  One of name, team, position, height, weight, age.
@@ -37,6 +40,9 @@
 #
 #     mlb-viewer -b name -m -g -o /tmp/by-lang.svg
 #
+# Created using `data-wrapper'.
+# (see https://github.com/eschulte/data-wrapper)
+#
 #
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 has(){ which "$1" >/dev/null 2>/dev/null; }
@@ -45,6 +51,7 @@ TITLE="$(basename $0) $@"
 NUM_ARGS="$#"
 ACT="all"
 OUT=""
+RAW=""
 GRAPH=""
 declare -a INC
 declare -a EXC
@@ -53,7 +60,7 @@ declare -a RES
 declare -a RES_NAMES
 row(){ # match categories to rows in the data
     case $1 in
-        n*) echo 1;; t*) echo 2;; p*) echo 3;; h*) echo 4;; w*) echo 5;; a*) echo 6;; 
+        a*) echo 6;; w*) echo 5;; h*) echo 4;; p*) echo 3;; t*) echo 2;; n*) echo 1;; 
         *) error "Category '$i' does not match any category.";;
     esac; }
 add_cat(){
@@ -86,8 +93,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:msctkngo: \
-    -l help,include:,exclude:,by:,result:,mean,sum,cor,t-test,ks-test,normal-test,graph,output: \
+    -o hi:e:b:r:msCctkngo:R \
+    -l help,include:,exclude:,by:,result:,mean,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -112,12 +119,14 @@ while [ $# -gt 0 ];do
             shift; IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
         -s|--sum)       add_act "sum";;
+        -C|--count)     add_act "count";;
         -c|--cor)       add_act "cor";;
         -n|--normal-test) add_act "normal";;
         -t|--t-test)    add_act "t_test";;
         -k|--ks-test)   add_act "ks_test";;
         -g|--graph)     GRAPH="yes";;
         -o|--output)    OUT="$2"; shift;;
+        -R|--raw)       RAW="yes";;
         (--) shift; break;;
         (-*) error "unrecognized option $1";;
         (*)  break;;
@@ -176,26 +185,35 @@ norm_test(){
     Rscript -e "$r_prefix shapiro.test(col1)" \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
-        |awk '{printf "%s(%s)", $2, $4}'; }
+        |awk '{printf "%s(%s%s)", $2, $4, $5}'; }
 
 # Run all actions using awk or R
 act(){
     case $ACT in
-        all)  awk '{ for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
+        all)  awk '{ if( NF > max_nf ) { max_nf = NF; }
+                     for (i=1; i<=NF; i++){ sum[i][NR] = $i; } }
                    END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){
+                     for (i=1; i<=max_nf; i++){
                        for (j=1; j<=NR; j++){
                          printf "%s", sum[i][j]; if(j<NR) printf ",";}
                        if(i<NF) printf " ";}}';;
-        sum)  awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
+        sum)  awk '{ if( NF > max_nf ) { max_nf = NF; }
+                     for (i=1; i<=NF; i++){ sum[i] += $i; } }
                    END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){
+                     for (i=1; i<=max_nf; i++){
                        printf "%s", sum[i];
                        if(i<NF) printf " "; }}';;
-        mean) awk '{ for (i=1; i<=NF; i++){ sum[i] += $i; } }
+        count)  awk '{ if( NF > max_nf ) { max_nf = NF; }
+                     for (i=1; i<=NF; i++){ count[i]++; } }
                    END { if(NR == 0) print "NA"; else
-                     for (i=1; i<=NF; i++){
-                       printf "%s", sum[i]/NR;
+                     for (i=1; i<=max_nf; i++){
+                       printf "%s", count[i];
+                       if(i<NF) printf " "; }}';;
+        mean) awk '{ if( NF > max_nf ) { max_nf = NF; }
+                     for (i=1; i<=NF; i++){ sum[i] += $i; count[i]++; } }
+                   END { if(NR == 0) print "NA"; else
+                     for (i=1; i<=max_nf; i++){
+                       printf "%s", sum[i]/count[i];
                        if(i<NF) printf " ";}}';;
         t_test)  t_test;;
         ks_test) ks_test;;
@@ -210,7 +228,7 @@ post_process(){
             OUT="set term '$(echo "$OUT"|sed 's/^.*\.//')';set output '$OUT';";
         fi
         TMPFILE="/tmp/$(basename $0).temp-data"
-        if [ $(has gnuplot) ];then
+        if ! $(has gnuplot);then
             error "Graphing requires the gnuplot executable."
         elif ([ "$ACT" == "all" ] || $(contains "$ACT" "test"));then
             # graph a line for each line of output (needs labels)
@@ -221,43 +239,67 @@ post_process(){
             OUT+="set title '$TITLE';"
             OUT+="plot for [i=1:$NUMCOLS] '$TMPFILE' u i w l,"
             gnuplot -persist -e "$OUT"
-        elif [ ${#CAT[@]} -ne 1 ];then
-            error "TODO: 3D graphs for multiple categories."
         else
             # graph a histogram for each line of output
             if [ ${#RES[@]} -gt 1 ];then
-                MYDATA=$(sed 's/\// /g')
-                echo "$MYDATA" > "$TMPFILE"
-                OUT+="set title '$TITLE';"
-                OUT+="set style histogram clustered gap 5;"
-                OUT+="set style fill solid border -1;"
-                OUT+="set style data histograms;"
-                OUT+="set xtics rotate by -45;"
-                OUT+="set y2tics;"
-                OUT+="set ytics nomirror;"
-                OUT+="set ylabel '${RES_NAMES[0]}';"
-                OUT+="set y2label '${RES_NAMES[1]}';"
-                OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
-                OUT+="'$TMPFILE' u 3 axes x1y2 ti '${RES_NAMES[1]}'"
-                gnuplot -persist -e "$OUT"
+                if [ ${#CAT[@]} -eq 2 ];then
+                    error "Too many dimensions to graph. (TODO: 3D histograms)"
+                else
+                    MYDATA=$(sed 's/\// /g')
+                    echo "$MYDATA" > "$TMPFILE"
+                    OUT+="set title '$TITLE';"
+                    OUT+="set style histogram clustered gap 5;"
+                    OUT+="set style fill solid border -1;"
+                    OUT+="set style data histograms;"
+                    if [ ${#CAT[@]} -eq 1 ];then
+                        OUT+="set xtics rotate by -45;"
+                    fi
+                    OUT+="set y2tics;"
+                    OUT+="set ytics nomirror;"
+                    OUT+="set ylabel '${RES_NAMES[0]}';"
+                    OUT+="set y2label '${RES_NAMES[1]}';"
+                    if [ ${#CAT[@]} -eq 1 ];then
+                        OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
+                        OUT+="     '$TMPFILE' u 3         axes x1y2 ti '${RES_NAMES[1]}'"
+                    else
+                        OUT+="plot '$TMPFILE' u 1 axes x1y1 ti '${RES_NAMES[0]}', "
+                        OUT+="     '$TMPFILE' u 2 axes x1y2 ti '${RES_NAMES[1]}'"
+                    fi
+                    gnuplot -persist -e "$OUT"
+                fi
             else
                 MYDATA=$(sed 's/,/ /g')
                 echo "$MYDATA" > "$TMPFILE"
                 OUT+="set title '$TITLE';"
                 OUT+="set style fill solid border -1;"
-                OUT+="set xtics rotate by -45;"
-                OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
+                if [ ${#CAT[@]} -eq 2 ];then
+                    OUT+="set style histogram clustered gap 5;"
+                    OUT+="set style data histograms;"
+                    OUT+="set key autotitles columnhead;"
+                    OUT+="set xtics rotate by -45;"
+                    OUT+="plot '$TMPFILE' using 2:xtic(1), "
+                    OUT+="     '$TMPFILE' using 3;"
+                elif [ ${#CAT[@]} -eq 1 ];then
+                    OUT+="set xtics rotate by -45;"
+                    OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
+                else
+                    OUT+="plot '$TMPFILE' using 1 w boxes notitle;"
+                fi
                 gnuplot -persist -e "$OUT"
             fi
         fi
-        # rm "$TMPFILE"        
+        # rm "$TMPFILE"
     else
         if [ ! -z "$OUT" ];then
             echo "# $TITLE">$OUT
             cat >>$OUT
             echo "Wrote output to $OUT"
         else
-            column -t
+            if [ ! -z "$RAW" ];then
+                cat
+            else
+                column -t
+            fi
         fi
     fi; }
 
@@ -320,7 +362,7 @@ exit 0;
 # The rest of the file should be raw data.
 DATA:
 begin 644 -
-M'XL(``GTMU```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
+M'XL(`-5WO%```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
 M@V2YY:]_D0E094M@;VI1#D(@D!D9.?!T*;;EF:[%8JWDR?3T]F0FVL5:FI,\
 M.0DGXY,H&A5%\"BZJIR*C3Z$1&%Z$B>CK`B>Q%;7Y94TM:B7\N,K,`)P?!*/
 M1_DDN)&_5%W>J:H2AE$7RC0M5F_D5M1[;#I*XF"V-JHI+_76+7@`C;'%"4'S
