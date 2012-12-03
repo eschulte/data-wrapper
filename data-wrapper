@@ -93,6 +93,8 @@ SCRIPT:
 #
 # Actions (specify at most one to reduce results):
 #  -m --mean ------------- mean of all matching results
+#  -H --harmonic-mean ---- harmonic mean of all matching results
+#  -G --geometric-mean --- geometric mean of all matching results
 #  -s --sum -------------- mean of all matching results
 #  -C --count ------------ count all matching results
 #  -c --cor -------------- Pearson correlation between two categories
@@ -171,8 +173,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:msCctkngo:R \
-    -l help,include:,exclude:,by:,result:,mean,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
+    -o hi:e:b:r:mHGsCctkngo:R \
+    -l help,include:,exclude:,by:,result:,mean,harmonic-mean,geometric-mean,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -196,6 +198,8 @@ while [ $# -gt 0 ];do
             done
             shift; IFS="$SAVE";;
         -m|--mean)      add_act "mean";;
+        -H|--harmonic-mean) add_act "harmonic";;
+        -G|--geometric-mean) add_act "geometric";;
         -s|--sum)       add_act "sum";;
         -C|--count)     add_act "count";;
         -c|--cor)       add_act "cor";;
@@ -253,7 +257,7 @@ ks_test(){
     Rscript -e "$r_prefix ks.test(col1,col2)" 2>/dev/null \
         |sed 's/,//g;s/=//g' \
         |grep p-value \
-        |awk '{printf "%s(%s)", $2, $4}'; }
+        |awk '{printf "%s(%s%s)", $2, $4, $5}'; }
 cor_test(){
     Rscript -e "$r_prefix cor.test(col1,col2)" 2>/dev/null \
         |tr '\n' ' ' \
@@ -293,6 +297,18 @@ act(){
                      for (i=1; i<=max_nf; i++){
                        printf "%s", sum[i]/count[i];
                        if(i<NF) printf " ";}}';;
+        harmonic) awk '{ if( NF > max_nf ) { max_nf = NF; }
+                         for (i=1; i<=NF; i++){ sum[i] += 1/$i; count[i]++; } }
+                       END { if(NR == 0) print "NA"; else
+                         for (i=1; i<=max_nf; i++){
+                           printf "%s", count[i]/sum[i];
+                           if(i<NF) printf " ";}}';;
+        harmonic) awk '{ if( NF > max_nf ) { max_nf = NF; }
+                         for (i=1; i<=NF; i++){ sum[i] += log($i); count[i]++; } }
+                       END { if(NR == 0) print "NA"; else
+                         for (i=1; i<=max_nf; i++){
+                           printf "%s", exp(sum[i]/count[i]);
+                           if(i<NF) printf " ";}}';;
         t_test)  t_test;;
         ks_test) ks_test;;
         cor)     cor_test;;
