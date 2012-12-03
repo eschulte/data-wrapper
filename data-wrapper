@@ -302,7 +302,7 @@ post_process(){
             OUT="set term '$(echo "$OUT"|sed 's/^.*\.//')';set output '$OUT';";
         fi
         TMPFILE="/tmp/$(basename $0).temp-data"
-        if [ $(has gnuplot) ];then
+        if ! $(has gnuplot);then
             error "Graphing requires the gnuplot executable."
         elif ([ "$ACT" == "all" ] || $(contains "$ACT" "test"));then
             # graph a line for each line of output (needs labels)
@@ -313,36 +313,56 @@ post_process(){
             OUT+="set title '$TITLE';"
             OUT+="plot for [i=1:$NUMCOLS] '$TMPFILE' u i w l,"
             gnuplot -persist -e "$OUT"
-        elif [ ${#CAT[@]} -ne 1 ];then
-            error "TODO: 3D graphs for multiple categories."
         else
             # graph a histogram for each line of output
             if [ ${#RES[@]} -gt 1 ];then
-                MYDATA=$(sed 's/\// /g')
-                echo "$MYDATA" > "$TMPFILE"
-                OUT+="set title '$TITLE';"
-                OUT+="set style histogram clustered gap 5;"
-                OUT+="set style fill solid border -1;"
-                OUT+="set style data histograms;"
-                OUT+="set xtics rotate by -45;"
-                OUT+="set y2tics;"
-                OUT+="set ytics nomirror;"
-                OUT+="set ylabel '${RES_NAMES[0]}';"
-                OUT+="set y2label '${RES_NAMES[1]}';"
-                OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
-                OUT+="'$TMPFILE' u 3 axes x1y2 ti '${RES_NAMES[1]}'"
-                gnuplot -persist -e "$OUT"
+                if [ ${#CAT[@]} -eq 2 ];then
+                    error "Too many dimensions to graph. (TODO: 3D histograms)"
+                else
+                    MYDATA=$(sed 's/\// /g')
+                    echo "$MYDATA" > "$TMPFILE"
+                    OUT+="set title '$TITLE';"
+                    OUT+="set style histogram clustered gap 5;"
+                    OUT+="set style fill solid border -1;"
+                    OUT+="set style data histograms;"
+                    if [ ${#CAT[@]} -eq 1 ];then
+                        OUT+="set xtics rotate by -45;"
+                    fi
+                    OUT+="set y2tics;"
+                    OUT+="set ytics nomirror;"
+                    OUT+="set ylabel '${RES_NAMES[0]}';"
+                    OUT+="set y2label '${RES_NAMES[1]}';"
+                    if [ ${#CAT[@]} -eq 1 ];then
+                        OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
+                        OUT+="     '$TMPFILE' u 3         axes x1y2 ti '${RES_NAMES[1]}'"
+                    else
+                        OUT+="plot '$TMPFILE' u 1 axes x1y1 ti '${RES_NAMES[0]}', "
+                        OUT+="     '$TMPFILE' u 2 axes x1y2 ti '${RES_NAMES[1]}'"
+                    fi
+                    gnuplot -persist -e "$OUT"
+                fi
             else
                 MYDATA=$(sed 's/,/ /g')
                 echo "$MYDATA" > "$TMPFILE"
                 OUT+="set title '$TITLE';"
                 OUT+="set style fill solid border -1;"
-                OUT+="set xtics rotate by -45;"
-                OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
+                if [ ${#CAT[@]} -eq 2 ];then
+                    OUT+="set style histogram clustered gap 5;"
+                    OUT+="set style data histograms;"
+                    OUT+="set key autotitles columnhead;"
+                    OUT+="set xtics rotate by -45;"
+                    OUT+="plot '$TMPFILE' using 2:xtic(1), "
+                    OUT+="     '$TMPFILE' using 3;"
+                elif [ ${#CAT[@]} -eq 1 ];then
+                    OUT+="set xtics rotate by -45;"
+                    OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
+                else
+                    OUT+="plot '$TMPFILE' using 1 w boxes notitle;"
+                fi
                 gnuplot -persist -e "$OUT"
             fi
         fi
-        rm "$TMPFILE"
+        # rm "$TMPFILE"
     else
         if [ ! -z "$OUT" ];then
             echo "# $TITLE">$OUT
