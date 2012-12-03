@@ -101,6 +101,7 @@ SCRIPT:
 #  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
 #                          results (at most one category, R)
 #  -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
+#                          (null hypothesis is normal data)
 #
 # Columns (COL):
 #  One of COLUMNS.
