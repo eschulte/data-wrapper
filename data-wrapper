@@ -303,12 +303,12 @@ act(){
                          for (i=1; i<=max_nf; i++){
                            printf "%s", count[i]/sum[i];
                            if(i<NF) printf " ";}}';;
-        harmonic) awk '{ if( NF > max_nf ) { max_nf = NF; }
-                         for (i=1; i<=NF; i++){ sum[i] += log($i); count[i]++; } }
-                       END { if(NR == 0) print "NA"; else
-                         for (i=1; i<=max_nf; i++){
-                           printf "%s", exp(sum[i]/count[i]);
-                           if(i<NF) printf " ";}}';;
+        geometric) awk '{ if( NF > max_nf ) { max_nf = NF; }
+                          for (i=1; i<=NF; i++){ sum[i] += log($i); count[i]++; } }
+                        END { if(NR == 0) print "NA"; else
+                          for (i=1; i<=max_nf; i++){
+                            printf "%s", exp(sum[i]/count[i]);
+                            if(i<NF) printf " ";}}';;
         t_test)  t_test;;
         ks_test) ks_test;;
         cor)     cor_test;;
