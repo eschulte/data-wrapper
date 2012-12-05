@@ -1,6 +1,11 @@
 Notes and Tasks                                           -*- org -*-
 
-* Tasks [10/11]
+* Tasks [11/12]
+** DONE more simple metrics
+- stdev
+- min
+- max
+
 ** DONE test suite and example page
 Small file of example data, and a simple test file which
 1. runs through some actions
