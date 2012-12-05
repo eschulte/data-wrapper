@@ -1,7 +1,7 @@
 Notes and Tasks                                           -*- org -*-
 
-* Tasks [9/11]
-** TODO test suite and example page
+* Tasks [10/11]
+** DONE test suite and example page
 Small file of example data, and a simple test file which
 1. runs through some actions
 2. verifies both lack of errors and valid output
