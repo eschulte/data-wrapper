@@ -66,7 +66,7 @@ than the original text file.</p>
 <pre><code>$ ls -1s mlb.txt mlb-viewer
 
 48 mlb.txt
-36 mlb-viewer
+40 mlb-viewer
 </code></pre>
 
 <p>With the <code>-h</code> option we can view the functionality provided by the
@@ -89,9 +89,12 @@ Options:
  -R --raw -------------- don't pretty print output
 
 Actions (specify at most one to reduce results):
+ -n --min -------------- min of all matching results
+ -x --max -------------- min of all matching results
  -m --mean ------------- mean of all matching results
  -H --harmonic-mean ---- harmonic mean of all matching results
  -G --geometric-mean --- geometric mean of all matching results
+ -S --stdev ------------ standard deviation of all matching results
  -s --sum -------------- mean of all matching results
  -C --count ------------ count all matching results
  -c --cor -------------- Pearson correlation between two categories
