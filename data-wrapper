@@ -250,6 +250,13 @@ transpose(){
                  for (r=1; r<=NR; r++)
                      printf a[r,f] (r==NR ? RS : FS); }'; }
 
+extract(){ # pull the given index out of each "/" delimited cell
+    local ind=$1;
+    awk "{ for(i=1; i<=NF; i++){
+             if(\$i ~ /\//) { split(\$i,a,\"/\"); printf \"%s \", a[$ind]; }
+             else { printf \"%s \", \$i; }}
+           print \"\";}"; }
+
 # Complex stats with R
 r_prefix='d <- read.table("stdin", header=FALSE, fill=TRUE);'
 r_prefix+='x <- as.vector(d[,1]); col1 <- x[!is.na(x)]; '
@@ -360,7 +367,24 @@ post_process(){
             # graph a histogram for each line of output
             if [ ${#RES[@]} -gt 1 ];then
                 if [ ${#CAT[@]} -eq 2 ];then
-                    error "Too many dimensions to graph. (TODO: 3D histograms)"
+                    DATA="$(cat)";
+                    OUT+="set title '$TITLE';"
+                    OUT+="splot "
+                    for((r=1;r<=${#RES[@]};r++));do
+                        R_FILE="$TMPFILE-$r"
+                        echo "$DATA"|extract $r>$R_FILE
+                        OUT+="'$R_FILE' matrix with lines"
+                        if [ $r -eq ${#RES[@]} ];then
+                            OUT+=";"
+                        else
+                            OUT+=", "
+                        fi
+                    done
+                    gnuplot -persist -e "$OUT"
+                    for((r=1;r<=${#RES[@]};r++));do
+                        R_FILE="$TMPFILE-$r"
+                        rm "$R_FILE"
+                    done
                 else
                     MYDATA=$(sed 's/\// /g')
                     echo "$MYDATA" > "$TMPFILE"
