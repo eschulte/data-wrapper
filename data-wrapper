@@ -373,7 +373,7 @@ post_process(){
                     for((r=1;r<=${#RES[@]};r++));do
                         R_FILE="$TMPFILE-$r"
                         echo "$DATA"|extract $r>$R_FILE
-                        OUT+="'$R_FILE' matrix with lines"
+                        OUT+="'$R_FILE' matrix with lines title '${RES_NAMES[r-1]}'"
                         if [ $r -eq ${#RES[@]} ];then
                             OUT+=";"
                         else
