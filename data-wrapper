@@ -252,10 +252,21 @@ transpose(){
 
 extract(){ # pull the given index out of each "/" delimited cell
     local ind=$1;
-    awk "{ for(i=1; i<=NF; i++){
-             if(\$i ~ /\//) { split(\$i,a,\"/\"); printf \"%s \", a[$ind]; }
-             else { printf \"%s \", \$i; }}
-           print \"\";}"; }
+    tail -n +2 \
+        |awk "{ for(i=2; i<=NF; i++){
+                  if(\$i ~ /\//) { split(\$i,a,\"/\"); printf \"%s \", a[$ind];}
+                  else { printf \"%s \", \$i; }}
+                print \"\";}"; }
+
+xtics(){
+    head -1 \
+        |awk '{for(i=2;i<=NF;i++){printf "\"%s\" %d,", $i, i-2;} printf "\n"}' \
+        |sed 's/.$//'; }
+
+ytics(){
+    tail -n +2 \
+        |awk '{ printf "\"%s\" %d,", $1, NR-1; } END { printf "\n"; }' \
+        |sed 's/.$//'; }
 
 # Complex stats with R
 r_prefix='d <- read.table("stdin", header=FALSE, fill=TRUE);'
@@ -369,6 +380,8 @@ post_process(){
                 if [ ${#CAT[@]} -eq 2 ];then
                     DATA="$(cat)";
                     OUT+="set title '$TITLE';"
+                    OUT+="set xtics ($(echo "$DATA"|xtics));"
+                    OUT+="set ytics ($(echo "$DATA"|ytics));"
                     OUT+="splot "
                     for((r=1;r<=${#RES[@]};r++));do
                         R_FILE="$TMPFILE-$r"
