@@ -1,7 +1,12 @@
 Notes and Tasks                                           -*- org -*-
 
-* Tasks [9/11]
-** TODO test suite and example page
+* Tasks [12/12]
+** DONE more simple metrics
+- stdev
+- min
+- max
+
+** DONE test suite and example page
 Small file of example data, and a simple test file which
 1. runs through some actions
 2. verifies both lack of errors and valid output
@@ -11,8 +16,8 @@ Small file of example data, and a simple test file which
 1. removes the least widely installed dependency
 2. provides for more flexibility in producing graphical results
 
-** STARTED graphs for multiple-category output [1/2]
-- [ ] [[file:data-wrapper::error%20"TODO:%203D%20graphs%20for%20multiple%20categories."][file:data-wrapper::error "TODO: 3D graphs for multiple categories."]]
+** DONE graphs for multiple-category output [2/2]
+- [X] [[file:data-wrapper::error%20"TODO:%203D%20graphs%20for%20multiple%20categories."][file:data-wrapper::error "TODO: 3D graphs for multiple categories."]]
 - [X] [[file:data-wrapper::error%20"TODO:%20clustered%20histograms%20for%20multiple%20categories."][file:data-wrapper::error "TODO: clustered histograms for multiple categories."]]
 
 ** DONE unify the =act= and =r_test= action methods

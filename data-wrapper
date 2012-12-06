@@ -92,9 +92,12 @@ SCRIPT:
 #  -R --raw -------------- don't pretty print output
 #
 # Actions (specify at most one to reduce results):
+#  -n --min -------------- min of all matching results
+#  -x --max -------------- min of all matching results
 #  -m --mean ------------- mean of all matching results
 #  -H --harmonic-mean ---- harmonic mean of all matching results
 #  -G --geometric-mean --- geometric mean of all matching results
+#  -S --stdev ------------ standard deviation of all matching results
 #  -s --sum -------------- mean of all matching results
 #  -C --count ------------ count all matching results
 #  -c --cor -------------- Pearson correlation between two categories
@@ -173,8 +176,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:mHGsCctkngo:R \
-    -l help,include:,exclude:,by:,result:,mean,harmonic-mean,geometric-mean,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
+    -o hi:e:b:r:nxmHGSsCctkngo:R \
+    -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -197,15 +200,18 @@ while [ $# -gt 0 ];do
                 RES_NAMES+=($i)
             done
             shift; IFS="$SAVE";;
-        -m|--mean)      add_act "mean";;
-        -H|--harmonic-mean) add_act "harmonic";;
+        -n|--min)            add_act "min";;
+        -x|--max)            add_act "max";;
+        -m|--mean)           add_act "mean";;
+        -H|--harmonic-mean)  add_act "harmonic";;
         -G|--geometric-mean) add_act "geometric";;
-        -s|--sum)       add_act "sum";;
-        -C|--count)     add_act "count";;
-        -c|--cor)       add_act "cor";;
-        -n|--normal-test) add_act "normal";;
-        -t|--t-test)    add_act "t_test";;
-        -k|--ks-test)   add_act "ks_test";;
+        -S|--stdev)          add_act "stdev";;
+        -s|--sum)            add_act "sum";;
+        -C|--count)          add_act "count";;
+        -c|--cor)            add_act "cor";;
+        -n|--normal-test)    add_act "normal";;
+        -t|--t-test)         add_act "t_test";;
+        -k|--ks-test)        add_act "ks_test";;
         -g|--graph)     GRAPH="yes";;
         -o|--output)    OUT="$2"; shift;;
         -R|--raw)       RAW="yes";;
@@ -243,6 +249,24 @@ transpose(){
          END { for (f=1; f<= nf; f++)
                  for (r=1; r<=NR; r++)
                      printf a[r,f] (r==NR ? RS : FS); }'; }
+
+extract(){ # pull the given index out of each "/" delimited cell
+    local ind=$1;
+    tail -n +2 \
+        |awk "{ for(i=2; i<=NF; i++){
+                  if(\$i ~ /\//) { split(\$i,a,\"/\"); printf \"%s \", a[$ind];}
+                  else { printf \"%s \", \$i; }}
+                print \"\";}"; }
+
+xtics(){
+    head -1 \
+        |awk '{for(i=2;i<=NF;i++){printf "\"%s\" %d,", $i, i-2;} printf "\n"}' \
+        |sed 's/.$//'; }
+
+ytics(){
+    tail -n +2 \
+        |awk '{ printf "\"%s\" %d,", $1, NR-1; } END { printf "\n"; }' \
+        |sed 's/.$//'; }
 
 # Complex stats with R
 r_prefix='d <- read.table("stdin", header=FALSE, fill=TRUE);'
@@ -291,6 +315,10 @@ act(){
                      for (i=1; i<=max_nf; i++){
                        printf "%s", count[i];
                        if(i<NF) printf " "; }}';;
+        min) awk '{ if ( ! min || min > $1) min = $1; }
+                  END { print min; }';;
+        max) awk '{ if ( ! max || max < $1) max = $1; }
+                  END { print max; }';;
         mean) awk '{ if( NF > max_nf ) { max_nf = NF; }
                      for (i=1; i<=NF; i++){ sum[i] += $i; count[i]++; } }
                    END { if(NR == 0) print "NA"; else
@@ -309,6 +337,19 @@ act(){
                           for (i=1; i<=max_nf; i++){
                             printf "%s", exp(sum[i]/count[i]);
                             if(i<NF) printf " ";}}';;
+        stdev) awk '{  if( NF > max_nf ) { max_nf = NF; }
+                       for (i=1; i<=NF; i++){
+                         sum[i] += $i;
+                         count[i]++;
+                         records[i][NR]=$i;
+                         mean[i]=sum[i]/NR;
+                         sum_of_squares[i]=0;
+                         for(x=1;x<=NR;x++){
+                           sum_of_squares[i]+=((records[i][x]-mean[i])^2); } } }
+                    END { if(NR == 0) print "NA"; else
+                      for (i=1; i<=NF; i++) {
+                        printf "%s", sum_of_squares[i]/count[i];
+                        if(i<NF) printf " ";}}';;
         t_test)  t_test;;
         ks_test) ks_test;;
         cor)     cor_test;;
@@ -337,7 +378,26 @@ post_process(){
             # graph a histogram for each line of output
             if [ ${#RES[@]} -gt 1 ];then
                 if [ ${#CAT[@]} -eq 2 ];then
-                    error "Too many dimensions to graph. (TODO: 3D histograms)"
+                    DATA="$(cat)";
+                    OUT+="set title '$TITLE';"
+                    OUT+="set xtics ($(echo "$DATA"|xtics));"
+                    OUT+="set ytics ($(echo "$DATA"|ytics));"
+                    OUT+="splot "
+                    for((r=1;r<=${#RES[@]};r++));do
+                        R_FILE="$TMPFILE-$r"
+                        echo "$DATA"|extract $r>$R_FILE
+                        OUT+="'$R_FILE' matrix with lines title '${RES_NAMES[r-1]}'"
+                        if [ $r -eq ${#RES[@]} ];then
+                            OUT+=";"
+                        else
+                            OUT+=", "
+                        fi
+                    done
+                    gnuplot -persist -e "$OUT"
+                    for((r=1;r<=${#RES[@]};r++));do
+                        R_FILE="$TMPFILE-$r"
+                        rm "$R_FILE"
+                    done
                 else
                     MYDATA=$(sed 's/\// /g')
                     echo "$MYDATA" > "$TMPFILE"
