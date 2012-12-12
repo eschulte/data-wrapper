@@ -4,8 +4,8 @@
 #
 # Options:
 #  -h --help ------------- print this help message
-#  -i --include COL=STR -- only include items with COL=STR in results
-#  -e --exclude COL=STR -- exclude items with COL=STR from results
+#  -i --include COL=STR -- only include items in which COL=STR
+#  -e --exclude COL=STR -- exclude items in which COL=STR
 #  -b --by [COL,...] ----- group results by COLs (comma separated)
 #  -r --result [COL,...] - print results for COLs
 #                          (comma separated, defaults to age)
@@ -14,25 +14,24 @@
 #  -R --raw -------------- don't pretty print output
 #
 # Actions (specify at most one to reduce results):
-#  -n --min -------------- min of all matching results
-#  -x --max -------------- min of all matching results
-#  -m --mean ------------- mean of all matching results
-#  -H --harmonic-mean ---- harmonic mean of all matching results
-#  -G --geometric-mean --- geometric mean of all matching results
-#  -S --stdev ------------ standard deviation of all matching results
-#  -s --sum -------------- mean of all matching results
-#  -C --count ------------ count all matching results
-#  -c --cor -------------- Pearson correlation between two categories
+#  -n --min -------------- min of results
+#  -x --max -------------- min of results
+#  -m --mean ------------- mean of results
+#  -H --harmonic-mean ---- harmonic mean of results
+#  -G --geometric-mean --- geometric mean of results
+#  -S --stdev ------------ standard deviation of results
+#  -s --sum -------------- mean of results
+#  -C --count ------------ count results
+#  -c --cor -------------- Pearson correlation between results
 #  -t --t-test ----------- t test between all groups of results
-#                          (use at most one category, requires R)
-#  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
-#                          results (at most one category, R)
-#  -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
+#                          (use at most one category)
+#  -k --ks-test ---------- Kolomogorov-Smirnov between results
+#  -n --normal-test ------ Shapiro-Wilk test for normality
 #                          (null hypothesis is normal data)
 #
 # Columns (COL):
-#  One of name, team, position, height, weight, age.
-#  Unique sub-strings may be.
+#  Columns: name, team, position, height, weight, age
+#  Unique sub-strings may be used instead of full names.
 #
 # Examples:
 #
@@ -40,8 +39,8 @@
 #
 #     mlb-viewer -b name,team -m
 #
-#   to calculate the total value by name, and graph the results to an
-#   svg file, use:
+#   to calculate the total value by name, and graph the results
+#   to an svg file, use:
 #
 #     mlb-viewer -b name -m -g -o /tmp/by-lang.svg
 #
@@ -438,7 +437,7 @@ exit 0;
 # The rest of the file should be raw data.
 DATA:
 begin 644 -
-M'XL(`!;IOU```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
+M'XL(`':MR%```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
 M@V2YY:]_D0E094M@;VI1#D(@D!D9.?!T*;;EF:[%8JWDR?3T]F0FVL5:FI,\
 M.0DGXY,H&A5%\"BZJIR*C3Z$1&%Z$B>CK`B>Q%;7Y94TM:B7\N,K,`)P?!*/
 M1_DDN)&_5%W>J:H2AE$7RC0M5F_D5M1[;#I*XF"V-JHI+_76+7@`C;'%"4'S
