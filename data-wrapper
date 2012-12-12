@@ -82,8 +82,8 @@ SCRIPT:
 #
 # Options:
 #  -h --help ------------- print this help message
-#  -i --include COL=STR -- only include items with COL=STR in results
-#  -e --exclude COL=STR -- exclude items with COL=STR from results
+#  -i --include COL=STR -- only include items in which COL=STR
+#  -e --exclude COL=STR -- exclude items in which COL=STR
 #  -b --by [COL,...] ----- group results by COLs (comma separated)
 #  -r --result [COL,...] - print results for COLs
 #                          (comma separated, defaults to COL0)
@@ -92,25 +92,24 @@ SCRIPT:
 #  -R --raw -------------- don't pretty print output
 #
 # Actions (specify at most one to reduce results):
-#  -n --min -------------- min of all matching results
-#  -x --max -------------- min of all matching results
-#  -m --mean ------------- mean of all matching results
-#  -H --harmonic-mean ---- harmonic mean of all matching results
-#  -G --geometric-mean --- geometric mean of all matching results
-#  -S --stdev ------------ standard deviation of all matching results
-#  -s --sum -------------- mean of all matching results
-#  -C --count ------------ count all matching results
-#  -c --cor -------------- Pearson correlation between two categories
+#  -n --min -------------- min of results
+#  -x --max -------------- min of results
+#  -m --mean ------------- mean of results
+#  -H --harmonic-mean ---- harmonic mean of results
+#  -G --geometric-mean --- geometric mean of results
+#  -S --stdev ------------ standard deviation of results
+#  -s --sum -------------- mean of results
+#  -C --count ------------ count results
+#  -c --cor -------------- Pearson correlation between results
 #  -t --t-test ----------- t test between all groups of results
-#                          (use at most one category, requires R)
-#  -k --ks-test ---------- Kolomogorov-Smirnov between all groups of
-#                          results (at most one category, R)
-#  -n --normal-test ------ Shapiro-Wilk test for normality (requires R)
+#                          (use at most one category)
+#  -k --ks-test ---------- Kolomogorov-Smirnov between results
+#  -n --normal-test ------ Shapiro-Wilk test for normality
 #                          (null hypothesis is normal data)
 #
 # Columns (COL):
-#  One of COLUMNS.
-#  Unique sub-strings may be.
+#  Columns: COLUMNS
+#  Unique sub-strings may be used instead of full names.
 #
 # Examples:
 #
@@ -118,8 +117,8 @@ SCRIPT:
 #
 #     SCRIPT -b COL1,COL2 -m
 #
-#   to calculate the total value by COL1, and graph the results to an
-#   svg file, use:
+#   to calculate the total value by COL1, and graph the results
+#   to an svg file, use:
 #
 #     SCRIPT -b COL1 -m -g -o /tmp/by-lang.svg
 #
