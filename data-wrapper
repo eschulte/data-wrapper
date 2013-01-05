@@ -90,6 +90,7 @@ SCRIPT:
 #  -g --graph ------------ graph mean of results (requires gnuplot)
 #  -o --output FILE ------ save output to FILE
 #  -R --raw -------------- don't pretty print output
+#  -l --col -------------- print the column names and exit
 #
 # Actions (specify at most one to reduce results):
 #  -n --min -------------- min of results
@@ -134,6 +135,7 @@ NUM_ARGS="$#"
 ACT="all"
 OUT=""
 RAW=""
+COL=""
 GRAPH=""
 declare -a INC
 declare -a EXC
@@ -175,8 +177,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:nxmHGSsCctkngo:R \
-    -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
+    -o hi:e:b:r:nxmHGSsCctkngo:Rl \
+    -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw,col \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -214,6 +216,7 @@ while [ $# -gt 0 ];do
         -g|--graph)     GRAPH="yes";;
         -o|--output)    OUT="$2"; shift;;
         -R|--raw)       RAW="yes";;
+        -l|--col)       echo "COLUMNS"|sed 's/, / /g'; exit 0;;
         (--) shift; break;;
         (-*) error "unrecognized option $1";;
         (*)  break;;
