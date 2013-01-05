@@ -12,6 +12,7 @@
 #  -g --graph ------------ graph mean of results (requires gnuplot)
 #  -o --output FILE ------ save output to FILE
 #  -R --raw -------------- don't pretty print output
+#  -l --col -------------- print the column names and exit
 #
 # Actions (specify at most one to reduce results):
 #  -n --min -------------- min of results
@@ -56,6 +57,7 @@ NUM_ARGS="$#"
 ACT="all"
 OUT=""
 RAW=""
+COL=""
 GRAPH=""
 declare -a INC
 declare -a EXC
@@ -97,8 +99,8 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:nxmHGSsCctkngo:R \
-    -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw \
+    -o hi:e:b:r:nxmHGSsCctkngo:Rl \
+    -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw,col \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
@@ -136,6 +138,7 @@ while [ $# -gt 0 ];do
         -g|--graph)     GRAPH="yes";;
         -o|--output)    OUT="$2"; shift;;
         -R|--raw)       RAW="yes";;
+        -l|--col)       echo "name, team, position, height, weight, age"|sed 's/, / /g'; exit 0;;
         (--) shift; break;;
         (-*) error "unrecognized option $1";;
         (*)  break;;
@@ -437,7 +440,7 @@ exit 0;
 # The rest of the file should be raw data.
 DATA:
 begin 644 -
-M'XL(`':MR%```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
+M'XL(`(QVZ%```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
 M@V2YY:]_D0E094M@;VI1#D(@D!D9.?!T*;;EF:[%8JWDR?3T]F0FVL5:FI,\
 M.0DGXY,H&A5%\"BZJIR*C3Z$1&%Z$B>CK`B>Q%;7Y94TM:B7\N,K,`)P?!*/
 M1_DDN)&_5%W>J:H2AE$7RC0M5F_D5M1[;#I*XF"V-JHI+_76+7@`C;'%"4'S
