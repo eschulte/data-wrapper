@@ -490,7 +490,7 @@ case ${#CAT[@]} in
             if [ ${#RES[@]} -gt 1 ];then
                 error "Only one result column at a time for statistical tests.";
             fi
-            echo "[$(echo "$CATS"|wc -l)x$(echo "$CATS"|wc -l)] $(echo $CATS)"
+            echo "+ $(echo $CATS)"
             for x in $CATS;do
                 XS="$(echo "$DATA"|inc ${CAT[0]} $x|res)"
                 echo -n "$x"
@@ -513,7 +513,7 @@ case ${#CAT[@]} in
         fi
         XS="$(echo "$DATA"|awk "{print \$${CAT[0]}}"|sort -u)"
         YS="$(echo "$DATA"|awk "{print \$${CAT[1]}}"|sort -u)"
-        echo "[$(echo "$XS"|wc -l)x$(echo "$YS"|wc -l)] $(echo $YS)"
+        echo "+ $(echo $YS)"
         for x in $XS;do
             echo -n "$x"
             for y in $YS;do
