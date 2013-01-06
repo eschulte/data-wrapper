@@ -97,8 +97,8 @@ SCRIPT:
 #  -G --geometric-mean --- geometric mean of results
 #  -S --stdev ------------ standard deviation of results
 #  -s --sum -------------- mean of results
-#  -C --count ------------ count results
-#  -c --cor -------------- Pearson correlation between results
+#  -c --count ------------ count results
+#  -C --cor -------------- Pearson correlation between results
 #  -t --t-test ----------- t test between all groups of results
 #                          (use at most one category)
 #  -k --ks-test ---------- Kolomogorov-Smirnov between results
@@ -174,7 +174,7 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:nxmHGSsCctkngo:Rl \
+    -o hi:e:b:r:nxmHGSscCtkngo:Rl \
     -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw,col \
     -- $@ || echo "$HELP_TEXT" && exit 1;)
 
@@ -205,8 +205,8 @@ while [ $# -gt 0 ];do
         -G|--geometric-mean) add_act "geometric";;
         -S|--stdev)          add_act "stdev";;
         -s|--sum)            add_act "sum";;
-        -C|--count)          add_act "count";;
-        -c|--cor)            add_act "cor";;
+        -c|--count)          add_act "count";;
+        -C|--cor)            add_act "cor";;
         -n|--normal-test)    add_act "normal";;
         -t|--t-test)         add_act "t_test";;
         -k|--ks-test)        add_act "ks_test";;
