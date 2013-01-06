@@ -7,11 +7,8 @@
 #
 #  All remaining arguments (i.e., COLUMNS) should be the names of the
 #  columns of data in DATAFILE in order.  So for example, with data
-#  like the following,
+#  like the following in the file "mlb.txt",
 #
-#     Adam_Donachie   BAL     Catcher 74      180     22.99
-#     Paul_Bako       BAL     Catcher 74      215     34.69
-#     Ramon_Hernandez BAL     Catcher 72      210     30.78
 #     Kevin_Millar    BAL     First_Baseman   72      210     35.43
 #     Chris_Gomez     BAL     First_Baseman   73      188     35.71
 #     Brian_Roberts   BAL     Second_Baseman  69      176     29.39
@@ -24,7 +21,7 @@
 #  Run the following to generate an executable data viewer named
 #  neut-viewer.
 #
-#     data-viewer mlb name team position height weight age
+#     data-viewer mlb.txt name team position height weight age
 #
 contains(){ echo "$1"|grep "$2" >/dev/null 2>/dev/null; }
 HELP_TEXT=$(cat "$0" \
