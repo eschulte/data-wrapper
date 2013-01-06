@@ -454,7 +454,7 @@ post_process(){
                 gnuplot -persist -e "$OUT"
             fi
         fi
-        # rm "$TMPFILE"
+        rm "$TMPFILE"
     else
         if [ ! -z "$OUT" ];then
             echo "# $TITLE">$OUT
