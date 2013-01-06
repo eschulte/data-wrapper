@@ -139,8 +139,13 @@ GPLOT_OPT=""
 declare -a INC
 declare -a EXC
 declare -a CAT
+declare -a CAT_NAMES
 declare -a RES
 declare -a RES_NAMES
+CAT_NAMES+=('place-holder')
+for cat_name in $(echo "COLUMNS"|sed 's/, / /g');do
+    CAT_NAMES+=("$cat_name")
+done
 row(){ # match categories to rows in the data
     case $1 in
         CASE
@@ -434,6 +439,8 @@ post_process(){
                 if [ ${#CAT[@]} -eq 2 ];then
                     OUT+="set style histogram clustered gap 5;"
                     OUT+="set style data histograms;"
+                    OUT+="set ylabel '${RES_NAMES[0]}';"
+                    OUT+="set xlabel '${CAT_NAMES[${CAT[0]}]}';"
                     OUT+="set key autotitles columnhead;"
                     OUT+="set xtics rotate by -45;"
                     OUT+="plot '$TMPFILE' using 2:xtic(1), "
