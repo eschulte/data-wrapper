@@ -422,6 +422,7 @@ post_process(){
                     OUT+="set ytics nomirror;"
                     OUT+="set ylabel '${RES_NAMES[0]}';"
                     OUT+="set y2label '${RES_NAMES[1]}';"
+                    OUT+="set xlabel '${CAT_NAMES[${CAT[0]}]}';"
                     if [ ${#CAT[@]} -eq 1 ];then
                         OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
                         OUT+="     '$TMPFILE' u 3         axes x1y2 ti '${RES_NAMES[1]}'"
