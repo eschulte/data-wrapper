@@ -446,6 +446,8 @@ post_process(){
                     OUT+="plot '$TMPFILE' using 2:xtic(1), "
                     OUT+="     '$TMPFILE' using 3;"
                 elif [ ${#CAT[@]} -eq 1 ];then
+                    OUT+="set ylabel '${RES_NAMES[0]}';"
+                    OUT+="set xlabel '${CAT_NAMES[${CAT[0]}]}';"
                     OUT+="set xtics rotate by -45;"
                     OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
                 else
