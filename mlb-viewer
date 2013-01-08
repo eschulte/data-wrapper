@@ -9,7 +9,8 @@
 #  -b --by [COL,...] ----- group results by COLs (comma separated)
 #  -r --result [COL,...] - print results for COLs
 #                          (comma separated, defaults to age)
-#  -g --graph ------------ graph mean of results (requires gnuplot)
+#  -g --graph ------------ graph results (requires gnuplot)
+#  -G --Graph STRING ----- graph results, pass STRING to gnuplot
 #  -o --output FILE ------ save output to FILE
 #  -R --raw -------------- don't pretty print output
 #  -l --col -------------- print the column names and exit
@@ -19,11 +20,11 @@
 #  -x --max -------------- min of results
 #  -m --mean ------------- mean of results
 #  -H --harmonic-mean ---- harmonic mean of results
-#  -G --geometric-mean --- geometric mean of results
+#  -E --geometric-mean --- geometric mean of results
 #  -S --stdev ------------ standard deviation of results
 #  -s --sum -------------- mean of results
-#  -C --count ------------ count results
-#  -c --cor -------------- Pearson correlation between results
+#  -c --count ------------ count results
+#  -C --cor -------------- Pearson correlation between results
 #  -t --t-test ----------- t test between all groups of results
 #                          (use at most one category)
 #  -k --ks-test ---------- Kolomogorov-Smirnov between results
@@ -59,11 +60,17 @@ OUT=""
 RAW=""
 COL=""
 GRAPH=""
+GPLOT_OPT=""
 declare -a INC
 declare -a EXC
 declare -a CAT
+declare -a CAT_NAMES
 declare -a RES
 declare -a RES_NAMES
+CAT_NAMES+=('place-holder')
+for cat_name in $(echo "name, team, position, height, weight, age"|sed 's/, / /g');do
+    CAT_NAMES+=("$cat_name")
+done
 row(){ # match categories to rows in the data
     case $1 in
         a*) echo 6;; w*) echo 5;; h*) echo 4;; p*) echo 3;; t*) echo 2;; n*) echo 1;; 
@@ -99,9 +106,9 @@ HELP_TEXT=$(cat "$0" \
         |cut -c3-)
 
 eval set -- $(getopt \
-    -o hi:e:b:r:nxmHGSsCctkngo:Rl \
-    -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,output:,raw,col \
-    -- $@ || echo "$HELP_TEXT" && exit 1;)
+    -o hi:e:b:r:nxmHESscCtkngG:o:Rl \
+    -l help,include:,exclude:,by:,result:,min,max,mean,harmonic-mean,geometric-mean,stdev,sum,count,cor,t-test,ks-test,normal-test,graph,Graph:,output:,raw,col \
+    -- "$@" || echo "$HELP_TEXT" && exit 1;)
 
 while [ $# -gt 0 ];do
     case $1 in
@@ -127,15 +134,16 @@ while [ $# -gt 0 ];do
         -x|--max)            add_act "max";;
         -m|--mean)           add_act "mean";;
         -H|--harmonic-mean)  add_act "harmonic";;
-        -G|--geometric-mean) add_act "geometric";;
+        -E|--geometric-mean) add_act "geometric";;
         -S|--stdev)          add_act "stdev";;
         -s|--sum)            add_act "sum";;
-        -C|--count)          add_act "count";;
-        -c|--cor)            add_act "cor";;
+        -c|--count)          add_act "count";;
+        -C|--cor)            add_act "cor";;
         -n|--normal-test)    add_act "normal";;
         -t|--t-test)         add_act "t_test";;
         -k|--ks-test)        add_act "ks_test";;
         -g|--graph)     GRAPH="yes";;
+        -G|--Graph)     GRAPH="yes"; GPLOT_OPT="${2%;};"; shift;;
         -o|--output)    OUT="$2"; shift;;
         -R|--raw)       RAW="yes";;
         -l|--col)       echo "name, team, position, height, weight, age"|sed 's/, / /g'; exit 0;;
@@ -286,6 +294,9 @@ post_process(){
         if [ ! -z "$OUT" ];then
             OUT="set term '$(echo "$OUT"|sed 's/^.*\.//')';set output '$OUT';";
         fi
+        if [ ! -z "$GPLOT_OPT" ];then
+            OUT+="$GPLOT_OPT"
+        fi
         TMPFILE="/tmp/$(basename $0).temp-data"
         if ! $(has gnuplot);then
             error "Graphing requires the gnuplot executable."
@@ -336,6 +347,7 @@ post_process(){
                     OUT+="set ytics nomirror;"
                     OUT+="set ylabel '${RES_NAMES[0]}';"
                     OUT+="set y2label '${RES_NAMES[1]}';"
+                    OUT+="set xlabel '${CAT_NAMES[${CAT[0]}]}';"
                     if [ ${#CAT[@]} -eq 1 ];then
                         OUT+="plot '$TMPFILE' u 2:xtic(1) axes x1y1 ti '${RES_NAMES[0]}', "
                         OUT+="     '$TMPFILE' u 3         axes x1y2 ti '${RES_NAMES[1]}'"
@@ -353,11 +365,15 @@ post_process(){
                 if [ ${#CAT[@]} -eq 2 ];then
                     OUT+="set style histogram clustered gap 5;"
                     OUT+="set style data histograms;"
+                    OUT+="set ylabel '${RES_NAMES[0]}';"
+                    OUT+="set xlabel '${CAT_NAMES[${CAT[0]}]}';"
                     OUT+="set key autotitles columnhead;"
                     OUT+="set xtics rotate by -45;"
                     OUT+="plot '$TMPFILE' using 2:xtic(1), "
                     OUT+="     '$TMPFILE' using 3;"
                 elif [ ${#CAT[@]} -eq 1 ];then
+                    OUT+="set ylabel '${RES_NAMES[0]}';"
+                    OUT+="set xlabel '${CAT_NAMES[${CAT[0]}]}';"
                     OUT+="set xtics rotate by -45;"
                     OUT+="plot '$TMPFILE' using 2:xtic(1) w boxes notitle;"
                 else
@@ -366,7 +382,7 @@ post_process(){
                 gnuplot -persist -e "$OUT"
             fi
         fi
-        # rm "$TMPFILE"
+        rm "$TMPFILE"
     else
         if [ ! -z "$OUT" ];then
             echo "# $TITLE">$OUT
@@ -402,7 +418,7 @@ case ${#CAT[@]} in
             if [ ${#RES[@]} -gt 1 ];then
                 error "Only one result column at a time for statistical tests.";
             fi
-            echo "[$(echo "$CATS"|wc -l)x$(echo "$CATS"|wc -l)] $(echo $CATS)"
+            echo "+ $(echo $CATS)"
             for x in $CATS;do
                 XS="$(echo "$DATA"|inc ${CAT[0]} $x|res)"
                 echo -n "$x"
@@ -425,7 +441,7 @@ case ${#CAT[@]} in
         fi
         XS="$(echo "$DATA"|awk "{print \$${CAT[0]}}"|sort -u)"
         YS="$(echo "$DATA"|awk "{print \$${CAT[1]}}"|sort -u)"
-        echo "[$(echo "$XS"|wc -l)x$(echo "$YS"|wc -l)] $(echo $YS)"
+        echo "+ $(echo $YS)"
         for x in $XS;do
             echo -n "$x"
             for y in $YS;do
@@ -440,7 +456,7 @@ exit 0;
 # The rest of the file should be raw data.
 DATA:
 begin 644 -
-M'XL(`(QVZ%```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
+M'XL(`)V]ZU```WQ;R7;CN+)<FS_R5JTCSN+J'DN>RO.U?*M.]88'EF`)+8IP
 M@V2YY:]_D0E094M@;VI1#D(@D!D9.?!T*;;EF:[%8JWDR?3T]F0FVL5:FI,\
 M.0DGXY,H&A5%\"BZJIR*C3Z$1&%Z$B>CK`B>Q%;7Y94TM:B7\N,K,`)P?!*/
 M1_DDN)&_5%W>J:H2AE$7RC0M5F_D5M1[;#I*XF"V-JHI+_76+7@`C;'%"4'S
