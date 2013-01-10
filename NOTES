@@ -1,6 +1,11 @@
 Notes and Tasks                                           -*- org -*-
 
-* Tasks [12/12]
+* Tasks [12/13]
+** TODO regressions
+Make it possible to fit regressions, shouldn't be hard with R.
+
+For bonus points, graph the data and the regression line with gnuplot.
+
 ** DONE more simple metrics
 - stdev
 - min
